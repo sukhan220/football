@@ -1,55 +1,11 @@
-// import NextAuth from "next-auth";
-// import GitHub from "next-auth/providers/github";
-// import { PrismaClient } from "@/app/generated/prisma/client";
-// import { PrismaAdapter } from "@auth/prisma-adapter";
-
-// const prisma = new PrismaClient();
-
-// export const { auth, handlers, signIn, signOut } = NextAuth({
-
-//   session: {
-//     strategy: "jwt",
-//   },
-
-//   providers: [
-//     GitHub,
-    
-//   ],
-
-  
-//   adapter: PrismaAdapter(prisma as any),
-
-//   callbacks: {
-
-//     async jwt({ token, user }) {
-
-//       if (user) {
-
-//         token.id = user.id;
-//         token.name = user.name;
-//         token.role = user.role;
-//       }
-
-//       return token;
-//     },
-
-//     async session({ session, token }) {
-
-//       if (session.user) {
-//         session.user.id = token.id as string;
-//         session.user.name = token.name as string;
-//         session.user.role = token.role as string;
-//       }
-
-//       return session;
-//     },
-//   },
-// });
+//
 
 import NextAuth, { type DefaultSession, type User } from "next-auth";
 import GitHub from "next-auth/providers/github";
 import { PrismaClient } from "@/app/generated/prisma/client";
 import { PrismaAdapter } from "@auth/prisma-adapter";
+import GoogleProvider from "next-auth/providers/google";
+import FacebookProvider from "next-auth/providers/facebook";
 import { JWT } from "next-auth/jwt";
 
 const prisma = new PrismaClient();
@@ -87,6 +43,14 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 
   providers: [
     GitHub,
+    GoogleProvider({
+      clientId: process.env.AUTH_GOOGLE_ID,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET,
+    }),
+    FacebookProvider({
+    clientId: process.env.FACEBOOK_CLIENT_ID,
+    clientSecret: process.env.FACEBOOK_CLIENT_SECRET
+  })
   ],
 
   adapter: PrismaAdapter(prisma as any),
@@ -96,7 +60,6 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       if (user) {
         token.id = user.id;
         token.name = user.name;
-        // ⚡ এখন টাইপস্ক্রিপ্ট এখানে আর লাল দাগ দেবে না
         token.role = user.role; 
       }
       return token;
