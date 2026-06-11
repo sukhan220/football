@@ -1,0 +1,694 @@
+
+
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/* =========================
+   USERS
+========================= */
+model User {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  name          String?
+  username      String?   @unique
+  email         String    @unique
+  image         String?
+
+  emailVerified DateTime?
+
+  bio           String?   @db.Text
+
+  role          Role      @default(USER)
+  verified      Boolean   @default(false)
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  articles      Article[]
+  comments      Comment[]
+  likes         Like[]
+  bookmarks     Bookmark[]
+
+  accounts      Account[]
+  sessions      Session[]
+
+  @@index([email])
+  @@index([username])
+  @@map("users")
+}
+
+/* =========================
+   ARTICLES
+========================= */
+model Article {
+  id              String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  coverImage      String?
+  thumbnailImage  String?
+
+  videoUrl        String?
+  featuredVideo   Boolean               @default(false)
+
+  status          ArticleStatus         @default(DRAFT)
+
+  featured        Boolean               @default(false)
+  breaking        Boolean               @default(false)
+
+  views           Int                   @default(0)
+  likesCount      Int                   @default(0)
+  commentsCount   Int                   @default(0)
+
+  publishedAt     DateTime?
+
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  authorId        String                @db.Uuid
+  author          User                  @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  categoryId      String                @db.Uuid
+  category        Category              @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  comments        Comment[]
+  likes           Like[]
+  bookmarks       Bookmark[]
+  tags            ArticleTag[]
+
+  translations    ArticleTranslation[]
+
+  @@index([status])
+  @@index([featured])
+  @@index([breaking])
+  @@index([createdAt])
+  @@index([publishedAt])
+  @@index([authorId])
+  @@index([categoryId])
+  @@map("articles")
+}
+
+model ArticleTranslation {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  articleId       String    @db.Uuid
+  article         Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  language        Language
+
+  title           String
+  shortTitle      String?
+
+  slug            String
+
+  content         Json
+
+  excerpt         String?   @db.Text
+
+  readingTime     Int?
+
+  seoTitle        String?
+  seoDescription  String?   @db.Text
+  seoKeywords     String?
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([articleId, language])
+  @@unique([language, slug])
+  @@index([slug])
+  @@index([language])
+  @@map("article_translations")
+}
+
+/* =========================
+   CATEGORIES
+========================= */
+model Category {
+  id            String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  image         String?
+  featured      Boolean               @default(false)
+
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  articles      Article[]
+  translations  CategoryTranslation[]
+
+  @@map("categories")
+}
+
+model CategoryTranslation {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  categoryId    String    @db.Uuid
+  category      Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  language      Language
+
+  name          String
+  shortName     String?
+  slug          String
+
+  description   String?   @db.Text
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([language, slug])
+  @@unique([categoryId, language])
+  @@index([slug])
+  @@index([language])
+  @@map("category_translations")
+}
+
+/* =========================
+   TAGS
+========================= */
+model Tag {
+  id            String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt     DateTime         @default(now())
+
+  articles      ArticleTag[]
+  translations  TagTranslation[]
+
+  @@map("tags")
+}
+
+model TagTranslation {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  tagId         String    @db.Uuid
+  tag           Tag       @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  language      Language
+
+  name          String
+  slug          String
+
+  createdAt     DateTime  @default(now())
+
+  @@unique([language, slug])
+  @@unique([tagId, language])
+  @@index([slug])
+  @@index([language])
+  @@map("tag_translations")
+}
+
+model ArticleTag {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  articleId     String    @db.Uuid
+  tagId         String    @db.Uuid
+
+  article       Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tag           Tag       @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, tagId])
+  @@map("article_tags")
+}
+
+/* =========================
+   COMMENTS, LIKES, BOOKMARKS
+========================= */
+model Comment {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  content       String    @db.Text
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  userId        String    @db.Uuid
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  articleId     String    @db.Uuid
+  article       Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@index([articleId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("comments")
+}
+
+model Like {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  userId        String    @db.Uuid
+  articleId     String    @db.Uuid
+
+  createdAt     DateTime  @default(now())
+
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article       Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, articleId])
+  @@index([articleId])
+  @@index([userId])
+  @@map("likes")
+}
+
+model Bookmark {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  userId        String    @db.Uuid
+  articleId     String    @db.Uuid
+
+  createdAt     DateTime  @default(now())
+
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article       Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, articleId])
+  @@index([articleId])
+  @@index([userId])
+  @@map("bookmarks")
+}
+
+/* =========================
+   NEXT AUTH (Postgres UUID Fixed)
+========================= */
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String  @db.Uuid
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String? @db.Text
+  access_token       String? @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String? @db.Text
+  session_state      String?
+
+  user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String   @db.Uuid
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+/* ===================================================
+   ⚽ SURE-FOOTBALL PRO SYSTEM
+====================================================== */
+
+enum CompetitionType {
+  CLUB
+  INTERNATIONAL
+}
+
+enum MatchStatus {
+  SCHEDULED
+  LIVE
+  FINISHED
+  POSTPONED
+  CANCELLED
+}
+
+enum MatchEventType {
+  GOAL
+  OWN_GOAL
+  PENALTY_GOAL
+  YELLOW_CARD
+  RED_CARD
+  SUBSTITUTION
+  VAR
+  INJURY
+  MATCH_START
+  HALF_TIME
+  MATCH_END
+}
+
+/* ===================================================
+   ১. COMPETITIONS
+====================================================== */
+model Competition {
+  id          String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  apiCode     String?         @unique 
+
+  name        String          @unique
+  slug        String          @unique
+  type        CompetitionType
+  logo        String?
+
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  seasons     Season[]
+
+  @@map("competitions")
+}
+
+/* ===================================================
+   ২. SEASONS
+====================================================== */
+model Season {
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  year          String        
+  slug          String        @unique
+  isActive      Boolean       @default(false)
+
+  competitionId String        @db.Uuid
+  competition   Competition   @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  matches         Match[]
+  standings       Standing[]
+  squads          SquadHistory[]
+  tournamentMetas TournamentMeta[]
+
+  @@unique([competitionId, year])
+  @@map("seasons")
+}
+
+/* ===================================================
+   ৩. TEAMS
+====================================================== */
+model Team {
+  id            String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  apiId         Int?           @unique 
+
+  name          String         @unique
+  slug          String         @unique
+  logo          String?
+  isNational    Boolean        @default(false)
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  squads        SquadHistory[]
+  homeMatches   Match[]        @relation("HomeTeamRelation")
+  awayMatches   Match[]        @relation("AwayTeamRelation")
+  standingRows  StandingRow[]
+  events        MatchEvent[]
+  lineups       MatchLineup[]
+
+  @@map("teams")
+}
+
+/* ===================================================
+   ৪. PLAYERS
+====================================================== */
+model Player {
+  id            String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  apiId         Int?           @unique
+
+  name          String
+  slug          String         @unique
+  position      String?
+  nationality   String?
+  photo         String?
+  birthDate     DateTime?
+  height        Int?
+  weight        Int?
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  squads        SquadHistory[]
+  events        MatchEvent[]
+  assists       MatchEvent[]   @relation("AssistPlayer")
+  lineups       MatchLineup[]
+
+  @@map("players")
+}
+
+/* ===================================================
+   ৫. SEASON SQUAD HISTORY
+====================================================== */
+model SquadHistory {
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  seasonId      String        @db.Uuid
+  teamId        String        @db.Uuid
+  playerId      String        @db.Uuid
+
+  jerseyNumber  Int?
+
+  season        Season        @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  team          Team          @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  player        Player        @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([seasonId, teamId, playerId])
+  @@map("squad_histories")
+}
+
+/* ===================================================
+   ৬. MATCHES / FIXTURES
+====================================================== */
+model Match {
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  apiId         Int?          @unique
+
+  seasonId      String        @db.Uuid
+  season        Season        @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+
+  homeTeamId    String        @db.Uuid
+  awayTeamId    String        @db.Uuid
+
+  homeTeam      Team          @relation("HomeTeamRelation", fields: [homeTeamId], references: [id], onDelete: Cascade)
+  awayTeam      Team          @relation("AwayTeamRelation", fields: [awayTeamId], references: [id], onDelete: Cascade)
+
+  matchDate     DateTime
+  round         String        
+  groupName     String?       
+  stage         String?       
+
+  venue         String?
+  homeScore     Int           @default(0)
+  awayScore     Int           @default(0)
+  status        MatchStatus   @default(SCHEDULED)
+  elapsedTime   Int           @default(0)
+
+  events        MatchEvent[]
+  lineups       MatchLineup[]
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([seasonId])
+  @@index([status])
+  @@index([matchDate])
+  @@map("matches")
+}
+
+/* ===================================================
+   ৭. MATCH EVENTS
+====================================================== */
+model MatchEvent {
+  id            String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  apiEventId    String?        @unique 
+
+  matchId       String         @db.Uuid
+  match         Match          @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  teamId        String?        @db.Uuid
+  team          Team?          @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  playerId      String?        @db.Uuid
+  player        Player?        @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  assistId      String?        @db.Uuid
+  assist        Player?        @relation("AssistPlayer", fields: [assistId], references: [id], onDelete: SetNull)
+
+  minute        Int
+  extraMinute   Int?
+  type          MatchEventType
+  description   String?
+  createdAt     DateTime       @default(now())
+
+  @@index([matchId])
+  @@index([playerId])
+  @@map("match_events")
+}
+
+/* ===================================================
+   ৮. MATCH LINEUPS
+====================================================== */
+model MatchLineup {
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  matchId       String        @db.Uuid
+  teamId        String        @db.Uuid
+  playerId      String        @db.Uuid
+
+  match         Match         @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  team          Team          @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  player        Player        @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  position      String?
+  jerseyNo      Int?
+  isStarter     Boolean       @default(false)
+  isCaptain     Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+
+  @@unique([matchId, playerId])
+  @@index([matchId])
+  @@index([teamId])
+  @@map("match_lineups")
+}
+
+/* ===================================================
+   ৯. STANDINGS
+====================================================== */
+model Standing {
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  seasonId      String        @db.Uuid
+  season        Season        @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+
+  groupName     String        
+  rows          StandingRow[]
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@unique([seasonId, groupName])
+  @@map("standings")
+}
+
+/* ===================================================
+   ১০. STANDING ROWS
+====================================================== */
+model StandingRow {
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  standingId    String        @db.Uuid
+  teamId        String        @db.Uuid
+
+  standing      Standing      @relation(fields: [standingId], references: [id], onDelete: Cascade)
+  team          Team          @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  position      Int
+  played        Int           @default(0)
+  win           Int           @default(0)
+  draw          Int           @default(0)
+  loss          Int           @default(0)
+  goalsFor      Int           @default(0)
+  goalsAgainst  Int           @default(0)
+  goalDiff      Int           @default(0)
+  points        Int           @default(0)
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@unique([standingId, teamId])
+  @@index([standingId])
+  @@map("standing_rows")
+}
+
+/* ===================================================
+   ⑪. TOURNAMENT META (Parallax Time-Line Optimized)
+====================================================== */
+enum MetaCategory {
+  MASCOT       
+  BALL         
+  TECHNOLOGY   
+  RULES        
+  CHAMPION     
+  RUNNER_UP    
+  FACTS        
+}
+
+model TournamentMeta {
+  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  
+  seasonId      String          @db.Uuid
+  season        Season          @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  
+  category      MetaCategory
+
+  // 💡 প্যারালাক্স টাইমলাইন সর্টিং এর জন্য বছর এবং অর্ডার ফিল্ড যুক্ত করা হলো
+  year          Int
+  displayOrder  Int             @default(0)
+
+  image         String?         
+  bgGradient    String?         
+  iconName      String?         
+  videoUrl      String?         
+  isActive      Boolean         @default(true)
+
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  translations  MetaTranslation[]
+
+  @@index([seasonId])
+  @@index([category])
+  @@index([year, displayOrder]) // কুয়েরি অপ্টিমাইজেশনের জন্য কম্পাউন্ড ইনডেক্স
+  @@map("tournament_metas")
+}
+
+model MetaTranslation {
+  id                String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  
+  metaId            String          @db.Uuid
+  tournamentMeta    TournamentMeta  @relation(fields: [metaId], references: [id], onDelete: Cascade)
+
+  language          Language        
+
+  title             String          
+  subtitle          String?         
+  slug              String          
+  
+  content           Json            
+  excerpt           String?         @db.Text 
+
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@unique([metaId, language])
+  @@unique([language, slug])
+  @@index([slug])
+  @@map("meta_translations")
+}
+
+/* =========================
+   ENUMS
+========================= */
+enum Role {
+  USER
+  WRITER
+  EDITOR
+  ADMIN
+}
+
+enum ArticleStatus {
+  DRAFT
+  REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+enum Language {
+  BN
+  EN
+}
