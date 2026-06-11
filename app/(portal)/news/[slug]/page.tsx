@@ -237,6 +237,8 @@ export default async function SingleNewsPage({ params }: PageProps) {
               initialHasLiked={false} 
               commentCount={_count.comments}
               labels={{ reactText: t.reactText, commentText: t.commentText }}
+              
+              
             />
 
             <CommentSection 
@@ -244,7 +246,7 @@ export default async function SingleNewsPage({ params }: PageProps) {
               language={currentLang}
               initialComments={comments.map(c => ({
                 id: c.id,
-                body: c.body,
+                body:(c.content || "") as string,
                 createdAt: c.createdAt.toISOString(),
                 user: { name: c.user.name || "User", image: c.user.image || "" }
               }))} 

@@ -21,6 +21,7 @@ interface Comment {
 
 interface CommentSectionProps {
   articleId: string;
+  language: string;
   initialComments: Comment[];
 }
 

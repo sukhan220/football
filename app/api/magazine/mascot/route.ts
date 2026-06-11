@@ -18,8 +18,8 @@ export async function POST(request: Request) {
   try {
     const formData = await request.formData();
     const seasonId = formData.get("seasonId") as string;
-    const currentLang = formData.get("language") as "BN" | "EN"; 
-    const cardsDataRaw = formData.get("cardsData") as string; 
+    const currentLang = formData.get("language") as "BN" | "EN";
+    const cardsDataRaw = formData.get("cardsData") as string;
 
     if (!seasonId || !cardsDataRaw) {
       return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
         } catch (uploadError: any) {
           console.error(`Cloudinary upload failed for mascot card ${card.id}:`, uploadError);
           return NextResponse.json(
-            { success: false, error: `Image upload failed: ${uploadError.message}` }, 
+            { success: false, error: `Image upload failed: ${uploadError.message}` },
             { status: 502 }
           );
         }
@@ -70,7 +70,7 @@ export async function POST(request: Request) {
 
       for (const card of preparedCards) {
         const inputTitle = card.title || "Untitled Mascot";
-        const inputDesc = card.description || ""; 
+        const inputDesc = card.description || "";
         const slugValue = slugify(inputTitle, { lower: true, strict: true }) || `mascot-${Date.now()}`;
 
         const newMascot = await tx.tournamentMeta.create({
@@ -78,21 +78,21 @@ export async function POST(request: Request) {
             seasonId,
             category: "MASCOT", // 🎯 ক্যাটাগরি চেঞ্জ করে MASCOT করা হলো
             year: Number(card.year) || 2026,
-            displayOrder: 0, 
-            image: card.uploadedImageUrl, 
+            displayOrder: 0,
+            image: card.uploadedImageUrl,
             translations: {
               create: [
                 {
                   language: "BN",
                   title: currentLang === "BN" ? inputTitle : `BN - ${inputTitle}`,
                   slug: `${slugValue}-bn-${card.year}-${Date.now()}`,
-                  content: currentLang === "BN" ? inputDesc : "", 
+                  content: currentLang === "BN" ? inputDesc : "",
                 },
                 {
                   language: "EN",
                   title: currentLang === "EN" ? inputTitle : `EN - ${inputTitle}`,
                   slug: `${slugValue}-en-${card.year}-${Date.now()}`,
-                  content: currentLang === "EN" ? inputDesc : "", 
+                  content: currentLang === "EN" ? inputDesc : "",
                 }
               ]
             }
@@ -104,14 +104,14 @@ export async function POST(request: Request) {
 
       return savedList;
     }, {
-      timeout: 15000 
+      timeout: 15000
     });
 
     return NextResponse.json({ success: true, data: createdMascots }, { status: 201 });
   } catch (error: any) {
     console.error("BULK CREATE MASCOT ERROR:", error);
     return NextResponse.json(
-      { success: false, error: error.message || "Internal Database Transaction Failed" }, 
+      { success: false, error: error.message || "Internal Database Transaction Failed" },
       { status: 500 }
     );
   }
@@ -168,8 +168,8 @@ export async function PUT(request: Request) {
     // ডাটাবেজ ট্রানজেকশনের মাধ্যমে ওল্ড ট্রান্সলেশন ডিলিট এবং নিউ ডাটা আপডেট একসাথে করা হচ্ছে
     const updatedMascot = await prisma.$transaction(async (tx) => {
       // ১. আগের সব ট্রান্সলেশন ক্লিন করা
-      await tx.tournamentMetaTranslation.deleteMany({
-        where: { tournamentMetaId: id }
+      await tx.metaTranslation.deleteMany({
+        where: { metaId: id }
       });
 
       const slugBn = slugify(translations.bn.title, { lower: true, strict: true }) || `mascot-bn-${Date.now()}`;
@@ -230,8 +230,8 @@ export async function DELETE(request: Request) {
     // ট্রানজেকশন দিয়ে ডিপেন্ডেন্ট ডাটা সহ ক্লিন ডিলিট
     await prisma.$transaction(async (tx) => {
       // প্রথমে চাইল্ড টেবিলের (Translations) ডাটা ডিলিট করতে হবে
-      await tx.tournamentMetaTranslation.deleteMany({
-        where: { tournamentMetaId: id }
+      await tx.metaTranslation.deleteMany({
+        where: { metaId: id }
       });
 
       // তারপর প্যারেন্ট টেবিলের (TournamentMeta) ডাটা ডিলিট

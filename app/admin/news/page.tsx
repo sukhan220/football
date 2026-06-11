@@ -7,7 +7,7 @@ import { LayoutGrid, Table2, Edit, Trash2, Globe, Eye, MessageSquare, ThumbsUp, 
 
 
 // ================= উপ-কম্পোনেন্ট: টেবিল ভিউ (TableView) =================
-function TableView({ articles, lang, onDelete }: { articles: any[]; lang: "BN" | "EN"; onDelete: (id: string) => void }) {
+function TableView({ articles, lang, onDelete }: {articles: any[] | undefined; lang: "BN" | "EN"; onDelete: (id: string) => void }) {
   // শুধুমাত্র সিলেক্টেড ল্যাঙ্গুয়েজের ট্রান্সলেশন থাকা নিউজ ফিল্টার করা হচ্ছে
   const filteredArticles = articles?.filter(art => art.translations.some((t: any) => t.language === lang)) || [];
 
@@ -77,7 +77,7 @@ function TableView({ articles, lang, onDelete }: { articles: any[]; lang: "BN" |
 }
 
 // ================= উপ-কম্পোনেন্ট: কার্ড ভিউ (CardView) =================
-function CardView({ articles, lang, onDelete }: { articles: any[]; lang: "BN" | "EN"; onDelete: (id: string) => void }) {
+function CardView({ articles, lang, onDelete }: { articles: any[] | undefined; lang: "BN" | "EN"; onDelete: (id: string) => void }) {
   const filteredArticles = articles?.filter(art => art.translations.some((t: any) => t.language === lang)) || [];
 
   if (filteredArticles.length === 0) {
@@ -172,7 +172,7 @@ export default function AdminNewsDashboard() {
     try {
       const res = await fetch(`/api/articles?id=${id}`, { method: "DELETE" });
       if (res.ok) {
-        setArticles((prev) => prev.filter((art) => art.id !== id));
+       setArticles((prev) => prev?.filter((art) => art.id !== id) || []);
       } else {
         alert("ডিলিট করতে সমস্যা হয়েছে।");
       }

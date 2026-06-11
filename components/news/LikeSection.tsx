@@ -9,6 +9,10 @@ interface LikeSectionProps {
   initialLikes: number;
   initialHasLiked: boolean;
   commentCount: number;
+  labels: {                // 👈 এই টাইপটুকু নতুন যোগ করুন
+    reactText: string;
+    commentText: string;
+  };
 }
 
 export default function LikeSection({ articleId, initialLikes, initialHasLiked, commentCount }: LikeSectionProps) {
