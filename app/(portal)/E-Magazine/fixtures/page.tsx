@@ -1,205 +1,9 @@
-// "use client";
-
-// import React, { useState, useEffect } from "react";
-// import { MapPin, Trophy, Calendar, Clock } from "lucide-react";
-
-// interface Fixture {
-//   id: string;
-//   season: string;
-//   homeTeam: string;
-//   awayTeam: string;
-//   homeTeamLogo: string | null;
-//   awayTeamLogo: string | null;
-//   matchDate: string;
-//   round: string | null;
-//   venue: string | null;
-//   homeScore: number | null;
-//   awayScore: number | null;
-//   status: "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED" | "CANCELLED";
-// }
-
-// export default function FixturesPage() {
-//   const [fixtures, setFixtures] = useState<Fixture[]>([]);
-//   const [loading, setLoading] = useState(true);
-
-//   useEffect(() => {
-//     async function fetchData() {
-//       try {
-//         // 💡 পরিবর্তন: এখন ডাটা সরাসরি আমাদের লোকাল ডাটাবেজ কুয়েরি API থেকে আসবে
-//         const res = await fetch("/api/fixtures?competitionCode=WC&season=2026");
-//         const data = await res.json();
-        
-//         if (Array.isArray(data)) {
-//           setFixtures(data);
-//         }
-//       } catch (error) {
-//         console.error("Error fetching fixtures:", error);
-//       } finally {
-//         setLoading(false);
-//       }
-//     }
-//     fetchData();
-//   }, []);
-
-//   // স্ট্যাটাস অনুযায়ী ব্যাজের স্টাইল নির্ধারণ
-//   const getStatusStyles = (status: Fixture["status"]) => {
-//     switch (status) {
-//       case "LIVE":
-//         return "bg-rose-50 text-rose-600 border border-rose-200 animate-pulse";
-//       case "FINISHED":
-//         return "bg-emerald-50 text-emerald-600 border border-emerald-200";
-//       case "SCHEDULED":
-//         return "bg-blue-50 text-blue-600 border border-blue-100";
-//       default:
-//         return "bg-slate-50 text-slate-500 border border-slate-200";
-//     }
-//   };
-
-//   return (
-//     <div className="min-h-screen bg-slate-50/50 py-8 px-4 sm:px-6 lg:px-8">
-//       <div className="max-w-3xl mx-auto">
-        
-//         {/* হেডার সেকশন */}
-//         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 mb-8 border-b border-slate-200 gap-4">
-//           <div className="flex items-center gap-3">
-//             <div className="p-2.5 bg-amber-50 rounded-xl border border-amber-200 shadow-sm">
-//               <Trophy className="w-6 h-6 text-amber-500" />
-//             </div>
-//             <div>
-//               <h1 className="text-2xl font-black text-slate-950 tracking-tight">FIFA World Cup 2026</h1>
-//               <p className="text-xs text-slate-500 font-medium mt-0.5">Match Fixtures & Results</p>
-//             </div>
-//           </div>
-//         </div>
-
-//         {/* লোডিং স্টেট (Skeleton Loader) */}
-//         {loading ? (
-//           <div className="space-y-4">
-//             {[1, 2, 3].map((n) => (
-//               <div key={n} className="bg-white p-6 rounded-2xl border border-slate-100 space-y-4 animate-pulse">
-//                 <div className="flex justify-between">
-//                   <div className="h-4 w-24 bg-slate-200 rounded"></div>
-//                   <div className="h-4 w-20 bg-slate-200 rounded"></div>
-//                 </div>
-//                 <div className="h-12 bg-slate-100 rounded-xl w-full"></div>
-//               </div>
-//             ))}
-//           </div>
-//         ) : fixtures.length === 0 ? (
-//           <div className="text-center py-16 bg-white rounded-2xl border border-slate-100 text-slate-400 font-medium">
-//             No fixtures found at the moment.
-//           </div>
-//         ) : (
-//           <div className="space-y-4">
-//             {fixtures.map((match) => {
-//               const dateObj = new Date(match.matchDate);
-//               const formattedDate = dateObj.toLocaleDateString("en-US", { day: 'numeric', month: 'short', year: 'numeric' });
-//               const formattedTime = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-//               return (
-//                 <div 
-//                   key={match.id} 
-//                   className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200/80 transition-all duration-200 overflow-hidden"
-//                 >
-//                   {/* টপ মেটা বার */}
-//                   <div className="bg-slate-50/70 px-6 py-2.5 border-b border-slate-100 flex justify-between items-center text-[11px] font-bold tracking-wider text-slate-500 uppercase">
-//                     <span>{match.round?.replace("_", " ") || "MATCH"}</span>
-//                     <span className="flex items-center gap-1">
-//                       <Calendar className="w-3 h-3 text-slate-400" /> {formattedDate}
-//                     </span>
-//                   </div>
-
-//                   {/* মেইন ম্যাচカード */}
-//                   <div className="p-6">
-//                     <div className="grid grid-cols-3 items-center gap-2">
-                      
-//                       {/* হোম টিম */}
-//                       <div className="flex flex-col items-center text-center gap-2.5">
-//                         <div className="w-14 h-14 bg-slate-50 rounded-xl flex items-center justify-center p-2 border border-slate-100/80 shadow-inner">
-//                           {match.homeTeamLogo ? (
-//                             <img 
-//                               src={match.homeTeamLogo} 
-//                               alt={match.homeTeam} 
-//                               className="w-full h-full object-contain" 
-//                               loading="lazy"
-//                             />
-//                           ) : (
-//                             <div className="w-full h-full bg-slate-200 rounded flex items-center justify-center font-bold text-slate-400 text-xs">
-//                               {match.homeTeam.substring(0, 3).toUpperCase()}
-//                             </div>
-//                           )}
-//                         </div>
-//                         <span className="font-bold text-slate-800 text-xs sm:text-sm max-w-[120px] line-clamp-2 leading-tight">
-//                           {match.homeTeam}
-//                         </span>
-//                       </div>
-
-//                       {/* মিডল সেকশন (স্কোর / সময়) */}
-//                       <div className="flex flex-col items-center justify-center gap-2">
-//                         {match.status === "SCHEDULED" ? (
-//                           <div className="flex items-center gap-1 text-slate-700 font-mono font-bold text-xs sm:text-sm bg-slate-100/80 px-3 py-1.5 rounded-xl border border-slate-200/40">
-//                             <Clock className="w-3.5 h-3.5 text-slate-400" />
-//                             {formattedTime}
-//                           </div>
-//                         ) : (
-//                           <div className="flex items-center gap-3 font-mono text-2xl sm:text-3xl font-black text-slate-900 bg-slate-50 px-4 py-1.5 rounded-2xl border border-slate-100">
-//                             <span>{match.homeScore ?? 0}</span>
-//                             <span className="text-slate-300 text-xl font-normal">:</span>
-//                             <span>{match.awayScore ?? 0}</span>
-//                           </div>
-//                         )}
-                        
-//                         <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-extrabold tracking-wide uppercase ${getStatusStyles(match.status)}`}>
-//                           {match.status}
-//                         </span>
-//                       </div>
-
-//                       {/* অ্যাওয়ে টিম */}
-//                       <div className="flex flex-col items-center text-center gap-2.5">
-//                         <div className="w-14 h-14 bg-slate-50 rounded-xl flex items-center justify-center p-2 border border-slate-100/80 shadow-inner">
-//                           {match.awayTeamLogo ? (
-//                             <img 
-//                               src={match.awayTeamLogo} 
-//                               alt={match.awayTeam} 
-//                               className="w-full h-full object-contain" 
-//                               loading="lazy"
-//                             />
-//                           ) : (
-//                             <div className="w-full h-full bg-slate-200 rounded flex items-center justify-center font-bold text-slate-400 text-xs">
-//                               {match.awayTeam.substring(0, 3).toUpperCase()}
-//                             </div>
-//                           )}
-//                         </div>
-//                         <span className="font-bold text-slate-800 text-xs sm:text-sm max-w-[120px] line-clamp-2 leading-tight">
-//                           {match.awayTeam}
-//                         </span>
-//                       </div>
-
-//                     </div>
-
-//                     {/* ভেন্যু ফুটনোট */}
-//                     {match.venue && (
-//                       <div className="mt-5 pt-3.5 border-t border-dashed border-slate-100 flex items-center justify-center gap-1.5 text-slate-400 text-[11px] font-medium">
-//                         <MapPin className="w-3.5 h-3.5 text-slate-300 shrink-0" /> 
-//                         <span className="truncate">{match.venue}</span>
-//                       </div>
-//                     )}
-//                   </div>
-
-//                 </div>
-//               );
-//             })}
-//           </div>
-//         )}
-//       </div>
-//     </div>
-//   );
-// }
+// // // // ফিক্সচার পেজ
 
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { MapPin, Trophy, Calendar, Clock, Layers } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { ChevronRight, List, BarChart3, X } from "lucide-react";
 
 interface Fixture {
   id: string;
@@ -210,25 +14,56 @@ interface Fixture {
   awayTeamLogo: string | null;
   matchDate: string;
   round: string | null;
-  groupName: string | null; // 💡 নতুন স্কিমা ফিল্ড যুক্ত করা হলো
+  groupName: string | null;
+  stage?: string;
   venue: string | null;
   homeScore: number | null;
   awayScore: number | null;
   status: "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED" | "CANCELLED";
 }
 
+const stageNames: Record<string, string> = {
+  GROUP_STAGE: "গ্রুপ স্টেজ",
+  LAST_32: "রাউন্ড অব ৩২",
+  ROUND_OF_32: "রাউন্ড অব ৩২",
+  LAST_16: "রাউন্ড অব ১৬",
+  ROUND_OF_16: "রাউন্ড অব ১৬",
+  QUARTER_FINALS: "কোয়ার্টার ফাইনাল",
+  SEMI_FINALS: "সেমি ফাইনাল",
+  THIRD_PLACE: "তৃতীয় স্থান নির্ধারণী",
+  FINAL: "ফাইনাল",
+  KNOCKOUT_STAGE: "নকআউট স্টেজ"
+};
+
+type StandingTeam = {
+  name: string;
+  logo: string | null;
+  mp: number;
+  w: number;
+  d: number;
+  l: number;
+  gf: number;
+  ga: number;
+  pts: number;
+};
+
 export default function FixturesPage() {
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mobileTab, setMobileTab] = useState<"matches" | "standings">("matches");
+  const [isAllMatchesOpen, setIsAllMatchesOpen] = useState(false);
+  const currentMatchRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     async function fetchData() {
       try {
         const res = await fetch("/api/fixtures?competitionCode=WC&season=2026");
+        if (!res.ok) throw new Error(`API error! Status: ${res.status}`);
         const data = await res.json();
         
         if (Array.isArray(data)) {
-          setFixtures(data);
+          const sorted = data.sort((a, b) => new Date(a.matchDate).getTime() - new Date(b.matchDate).getTime());
+          setFixtures(sorted);
         }
       } catch (error) {
         console.error("Error fetching fixtures:", error);
@@ -239,189 +74,346 @@ export default function FixturesPage() {
     fetchData();
   }, []);
 
-  // 💡 ম্যাচগুলোকে গ্রুপ অনুযায়ী ভাগ (Group) করার লজিক
-  const groupedFixtures = fixtures.reduce((acc: Record<string, Fixture[]>, match) => {
-    // যদি গ্রুপনেম থাকে (যেমন: "GROUP A"), না থাকলে সেটাকে "Knockout Stage" বা "Other Matches" হিসেবে ধরবে
-    const groupKey = match.groupName ? match.groupName.toUpperCase() : "KNOCKOUT STAGE";
-    if (!acc[groupKey]) {
-      acc[groupKey] = [];
+  useEffect(() => {
+    if (isAllMatchesOpen && currentMatchRef.current) {
+      setTimeout(() => {
+        currentMatchRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
     }
-    acc[groupKey].push(match);
-    return acc;
-  }, {});
+  }, [isAllMatchesOpen]);
 
-  // স্ট্যাটাস অনুযায়ী ব্যাজের স্টাইল নির্ধারণ
-  const getStatusStyles = (status: Fixture["status"]) => {
-    switch (status) {
-      case "LIVE":
-        return "bg-rose-50 text-rose-600 border border-rose-200 animate-pulse";
-      case "FINISHED":
-        return "bg-emerald-50 text-emerald-600 border border-emerald-200";
-      case "SCHEDULED":
-        return "bg-blue-50 text-blue-600 border border-blue-100";
-      default:
-        return "bg-slate-50 text-slate-500 border border-slate-200";
+  const formatMatchTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const timeStr = date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+
+    if (date.toDateString() === today.toDateString()) {
+      return { day: "আজ", time: timeStr, isCurrent: true };
+    } else if (date.toDateString() === tomorrow.toDateString()) {
+      return { day: "আগামীকাল", time: timeStr, isCurrent: true };
+    } else {
+      const formattedDay = date.toLocaleDateString("bn-BD", { weekday: "long", month: "short", day: "numeric" });
+      return { day: formattedDay, time: timeStr, isCurrent: false };
+    }
+  };
+
+  const currentMatches = fixtures.filter((match) => {
+    if (match.status === "LIVE") return true;
+    const { isCurrent } = formatMatchTime(match.matchDate);
+    return isCurrent;
+  });
+
+  console.log("Current Matches:", currentMatches);
+
+  // গ্রুপ বা স্টেজের নাম ফরম্যাট করার হেল্পার ফাংশন
+  const formatGroupName = (match: Fixture) => {
+    if (match.stage && match.stage !== "GROUP_STAGE") {
+      return stageNames[match.stage] || match.stage;
+    }
+    if (match.groupName) {
+      const cleanGroup = match.groupName.replace("GROUP_", "").replace("Group_", "").toUpperCase();
+      return `গ্রুপ ${cleanGroup}`;
+    }
+    return "";
+  };
+
+  const getGroupedFixtures = (matchList: Fixture[]) => {
+    const groupsMap: Record<string, { stageKey: string; groupName: string; isCurrentGroup: boolean; matches: Fixture[] }> = {};
+    const groupOrder: string[] = [];
+
+    matchList.forEach((match) => {
+      const stageKey = match.stage || (match.groupName ? "GROUP_STAGE" : "KNOCKOUT_STAGE");
+      const { day, isCurrent } = formatMatchTime(match.matchDate);
+      
+      const displayStageOrGroup = (stageKey === "GROUP_STAGE" && match.groupName)
+        ? `গ্রুপ ${match.groupName.replace("GROUP_", "").replace("Group_", "").toUpperCase()}` 
+        : (stageNames[stageKey] || stageKey);
+
+      const groupName = `${displayStageOrGroup} · ${day}`;
+      const uniqueKey = `${stageKey}_${groupName}`;
+
+      if (!groupsMap[uniqueKey]) {
+        groupsMap[uniqueKey] = { 
+          stageKey, 
+          groupName, 
+          isCurrentGroup: isCurrent || match.status === "LIVE", 
+          matches: [] 
+        };
+        groupOrder.push(uniqueKey);
+      }
+      groupsMap[uniqueKey].matches.push(match);
+    });
+
+    return groupOrder.map((key) => groupsMap[key]);
+  };
+
+  const generateGroupStandings = (matches: Fixture[]) => {
+    const standingsMap: Record<string, Record<string, StandingTeam>> = {};
+    matches.forEach(match => {
+      if (match.status !== "FINISHED" || !match.groupName) return;
+      const group = match.groupName.replace("GROUP_", "").replace("Group_", "").toUpperCase();
+      if (!standingsMap[group]) standingsMap[group] = {};
+      
+      [match.homeTeam, match.awayTeam].forEach(team => {
+        if (!standingsMap[group][team]) {
+          standingsMap[group][team] = {
+            name: team,
+            logo: team === match.homeTeam ? match.homeTeamLogo : match.awayTeamLogo,
+            mp: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0
+          };
+        }
+      });
+
+      const home = standingsMap[group][match.homeTeam];
+      const away = standingsMap[group][match.awayTeam];
+      const hScore = match.homeScore ?? 0;
+      const aScore = match.awayScore ?? 0;
+
+      home.mp += 1; away.mp += 1;
+      home.gf += hScore; home.ga += aScore;
+      away.gf += aScore; away.ga += hScore;
+
+      if (hScore > aScore) { home.w += 1; home.pts += 3; away.l += 1; }
+      else if (hScore < aScore) { away.w += 1; away.pts += 3; home.l += 1; }
+      else { home.d += 1; away.d += 1; home.pts += 1; away.pts += 1; }
+    });
+
+    const sortedGroups: Record<string, StandingTeam[]> = {};
+    Object.keys(standingsMap).sort().forEach(group => {
+      sortedGroups[group] = Object.values(standingsMap[group]).sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga));
+    });
+    return sortedGroups;
+  };
+
+  const groupStandings = generateGroupStandings(fixtures);
+
+  const renderMatchCard = (match: Fixture) => {
+    const { day, time } = formatMatchTime(match.matchDate);
+    const displayGroupName = formatGroupName(match);
+
+    return (
+      <div 
+        key={match.id} 
+        className={`bg-[#171717] border rounded-xl p-4 flex flex-col justify-between hover:bg-[#202124] transition-all group ${
+          match.status === "LIVE" ? "border-rose-500/50 ring-1 ring-rose-500/20" : "border-[#303134]"
+        }`}
+      >
+        {/* 🏷️ কার্ডের একদম ওপরে গ্রুপের নাম (আপনার স্ক্রিনশট অনুযায়ী যোগ করা হলো) */}
+        {displayGroupName && (
+          <div className="text-[11px] font-medium text-gray-400 mb-2.5 pb-1 border-b border-[#303134]/30">
+            {displayGroupName}
+          </div>
+        )}
+
+        <div className="flex justify-between items-center w-full">
+          <div className="space-y-3.5 flex-1 min-w-0 pr-2">
+            {/* হোম টিম */}
+            <div className="flex items-center gap-3">
+              <div className="w-5 h-5 bg-[#303134]/50 rounded flex items-center justify-center overflow-hidden shrink-0">
+                {match.homeTeamLogo ? <img src={match.homeTeamLogo} alt="" className="w-full h-full object-cover" /> : <span className="text-[9px] text-gray-400 font-bold">{match.homeTeam.substring(0, 2)}</span>}
+              </div>
+              <span className="text-sm font-normal text-[#e8eaed] truncate group-hover:text-white">{match.homeTeam}</span>
+            </div>
+            {/* অ্যাওয়ে টিম */}
+            <div className="flex items-center gap-3">
+              <div className="w-5 h-5 bg-[#303134]/50 rounded flex items-center justify-center overflow-hidden shrink-0">
+                {match.awayTeamLogo ? <img src={match.awayTeamLogo} alt="" className="w-full h-full object-cover" /> : <span className="text-[9px] text-gray-400 font-bold">{match.awayTeam.substring(0, 2)}</span>}
+              </div>
+              <span className="text-sm font-normal text-[#e8eaed] truncate group-hover:text-white">{match.awayTeam}</span>
+            </div>
+          </div>
+
+          {/* ডানপাশ: স্কোর/টাইম */}
+          <div className="border-l border-[#303134] pl-4 flex flex-col items-center justify-center min-w-[100px] text-center">
+            {match.status === "SCHEDULED" ? (
+              <div className="space-y-0.5">
+                <span className="text-xs text-[#bdc1c6] block font-medium">{day}</span>
+                <span className="text-xs text-gray-400 block tracking-tight">{time}</span>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex items-center justify-center gap-2 font-mono text-sm font-bold bg-[#303134]/40 px-2.5 py-1 rounded border border-[#303134]">
+                  <span className={match.status === "FINISHED" && match.homeScore! > match.awayScore! ? "text-white" : "text-gray-400"}>{match.homeScore ?? 0}</span>
+                  <span className="text-gray-600">:</span>
+                  <span className={match.status === "FINISHED" && match.awayScore! > match.homeScore! ? "text-white" : "text-gray-400"}>{match.awayScore ?? 0}</span>
+                </div>
+                <div className={`text-[9px] font-bold tracking-wider uppercase px-2 py-0.5 rounded border shadow-sm ${
+                  match.status === "LIVE" ? "bg-rose-950/40 text-rose-400 border-rose-500/30 animate-pulse" : "bg-[#202124] text-gray-400 border-[#303134]"
+                }`}>
+                  {match.status === "LIVE" ? "LIVE" : "MATCH STORY"}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  let hasSetRef = false;
+  const setScrollRef = (isCurrentGroup: boolean, element: HTMLDivElement | null) => {
+    if (isCurrentGroup && !hasSetRef && element) {
+      currentMatchRef.current = element;
+      hasSetRef = true;
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
-        
-        {/* হেডার সেকশন */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 mb-8 border-b border-slate-200 gap-4">
+    <div className="min-h-screen bg-[#202124] text-[#e8eaed] font-sans pb-20 lg:pb-8">
+      
+      {/* 🔝 মেইন হেডার বার */}
+      <div className="bg-[#171717] border-b border-[#303134] sticky top-0 z-40 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-amber-50 rounded-xl border border-amber-200 shadow-sm">
-              <Trophy className="w-6 h-6 text-amber-500" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-black text-slate-950 tracking-tight">FIFA World Cup 2026</h1>
-              <p className="text-xs text-slate-500 font-medium mt-0.5">Match Fixtures & Results</p>
-            </div>
+            <h1 className="text-xl md:text-2xl font-normal text-white tracking-tight">২০২৬ ফিফা ওয়ার্ল্ড কাপ</h1>
+            <span className="text-gray-600 hidden sm:inline text-xl">|</span>
           </div>
         </div>
+      </div>
 
-        {/* লোডিং স্টেট (Skeleton Loader) */}
+      {/* 🏟️ কন্টেন্ট লেআউট */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {loading ? (
-          <div className="space-y-4">
-            {[1, 2, 3].map((n) => (
-              <div key={n} className="bg-white p-6 rounded-2xl border border-slate-100 space-y-4 animate-pulse">
-                <div className="flex justify-between">
-                  <div className="h-4 w-24 bg-slate-200 rounded"></div>
-                  <div className="h-4 w-20 bg-slate-200 rounded"></div>
-                </div>
-                <div className="h-12 bg-slate-100 rounded-xl w-full"></div>
-              </div>
-            ))}
-          </div>
-        ) : fixtures.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-2xl border border-slate-100 text-slate-400 font-medium">
-            No fixtures found at the moment.
-          </div>
+          <div className="h-32 bg-[#303134]/50 rounded-xl animate-pulse"></div>
         ) : (
-          // 💡 গ্রুপ লুপ চালানো (Object.entries দিয়ে প্রতিটি গ্রুপ আলাদা করা হচ্ছে)
-          <div className="space-y-10">
-            {Object.entries(groupedFixtures).map(([groupName, groupMatches]) => (
-              <div key={groupName} className="space-y-4">
-                
-                {/* 🏷️ গ্রুপের টাইটেল বার */}
-                <div className="flex items-center gap-2 px-1">
-                  <Layers className="w-4 h-4 text-slate-400" />
-                  <h2 className="text-sm font-black text-slate-800 tracking-wider uppercase">
-                    {groupName}
-                  </h2>
-                  <span className="text-[11px] font-bold text-slate-400 bg-slate-200/60 px-2 py-0.5 rounded-full">
-                    {groupMatches.length} Matches
-                  </span>
-                </div>
-
-                {/* গ্রুপের ভেতরের ম্যাচগুলোর লিস্ট */}
-                <div className="space-y-4">
-                  {groupMatches.map((match) => {
-                    const dateObj = new Date(match.matchDate);
-                    const formattedDate = dateObj.toLocaleDateString("en-US", { day: 'numeric', month: 'short', year: 'numeric' });
-                    const formattedTime = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-                    return (
-                      <div 
-                        key={match.id} 
-                        className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200/80 transition-all duration-200 overflow-hidden"
-                      >
-                        {/* টপ মেটা বার */}
-                        <div className="bg-slate-50/70 px-6 py-2.5 border-b border-slate-100 flex justify-between items-center text-[11px] font-bold tracking-wider text-slate-500 uppercase">
-                          <span>{match.round?.replace("_", " ") || "MATCH"}</span>
-                          <span className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3 text-slate-400" /> {formattedDate}
-                          </span>
-                        </div>
-
-                        {/* মেইন ম্যাচ কার্ড */}
-                        <div className="p-6">
-                          <div className="grid grid-cols-3 items-center gap-2">
-                            
-                            {/* হোম টিম */}
-                            <div className="flex flex-col items-center text-center gap-2.5">
-                              <div className="w-14 h-14 bg-slate-50 rounded-xl flex items-center justify-center p-2 border border-slate-100/80 shadow-inner">
-                                {match.homeTeamLogo ? (
-                                  <img 
-                                    src={match.homeTeamLogo} 
-                                    alt={match.homeTeam} 
-                                    className="w-full h-full object-contain" 
-                                    loading="lazy"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full bg-slate-200 rounded flex items-center justify-center font-bold text-slate-400 text-xs">
-                                    {match.homeTeam.substring(0, 3).toUpperCase()}
-                                  </div>
-                                )}
-                              </div>
-                              <span className="font-bold text-slate-800 text-xs sm:text-sm max-w-[120px] line-clamp-2 leading-tight">
-                                {match.homeTeam}
-                              </span>
-                            </div>
-
-                            {/* মিডল সেকশন (স্কোর / সময়) */}
-                            <div className="flex flex-col items-center justify-center gap-2">
-                              {match.status === "SCHEDULED" ? (
-                                <div className="flex items-center gap-1 text-slate-700 font-mono font-bold text-xs sm:text-sm bg-slate-100/80 px-3 py-1.5 rounded-xl border border-slate-200/40">
-                                  <Clock className="w-3.5 h-3.5 text-slate-400" />
-                                  {formattedTime}
-                                </div>
-                              ) : (
-                                <div className="flex items-center gap-3 font-mono text-2xl sm:text-3xl font-black text-slate-900 bg-slate-50 px-4 py-1.5 rounded-2xl border border-slate-100">
-                                  <span>{match.homeScore ?? 0}</span>
-                                  <span className="text-slate-300 text-xl font-normal">:</span>
-                                  <span>{match.awayScore ?? 0}</span>
-                                </div>
-                              )}
-                              
-                              <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-extrabold tracking-wide uppercase ${getStatusStyles(match.status)}`}>
-                                {match.status}
-                              </span>
-                            </div>
-
-                            {/* অ্যাওয়ে টিম */}
-                            <div className="flex flex-col items-center text-center gap-2.5">
-                              <div className="w-14 h-14 bg-slate-50 rounded-xl flex items-center justify-center p-2 border border-slate-100/80 shadow-inner">
-                                {match.awayTeamLogo ? (
-                                  <img 
-                                    src={match.awayTeamLogo} 
-                                    alt={match.awayTeam} 
-                                    className="w-full h-full object-contain" 
-                                    loading="lazy"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full bg-slate-200 rounded flex items-center justify-center font-bold text-slate-400 text-xs">
-                                    {match.awayTeam.substring(0, 3).toUpperCase()}
-                                  </div>
-                                )}
-                              </div>
-                              <span className="font-bold text-slate-800 text-xs sm:text-sm max-w-[120px] line-clamp-2 leading-tight">
-                                {match.awayTeam}
-                              </span>
-                            </div>
-
-                          </div>
-
-                          {/* ভেন্যু ফুটনোট */}
-                          {match.venue && (
-                            <div className="mt-5 pt-3.5 border-t border-dashed border-slate-100 flex items-center justify-center gap-1.5 text-slate-400 text-[11px] font-medium">
-                              <MapPin className="w-3.5 h-3.5 text-slate-300 shrink-0" /> 
-                              <span className="truncate">{match.venue}</span>
-                            </div>
-                          )}
-                        </div>
-
-                      </div>
-                    );
-                  })}
-                </div>
-
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            
+            {/* 🕒 বাম কলাম: মেইন স্ক্রিন */}
+            <div className={`lg:col-span-2 space-y-6 ${mobileTab === "matches" ? "block" : "hidden lg:block"}`}>
+              <div className="text-lg font-normal text-white pb-2 border-b border-[#303134]">
+                <span>আজ ও আগামীকালের ম্যাচ</span>
               </div>
-            ))}
+
+              {currentMatches.length === 0 ? (
+                <div className="text-center py-12 bg-[#171717] rounded-xl border border-[#303134] text-gray-500 text-sm px-4">
+                  আজ বা আগামীকাল কোনো match সিডিউল নেই। নিচের বাটনে ক্লিক করে সব ম্যাচ দেখুন।
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {currentMatches.map(match => renderMatchCard(match))}
+                </div>
+              )}
+
+              {/* 🔘 আরও ম্যাচ দেখার বাটন */}
+              <div className="pt-2">
+                <button 
+                  onClick={() => {
+                    hasSetRef = false;
+                    setIsAllMatchesOpen(true);
+                  }}
+                  className="w-full py-3 bg-[#171717] hover:bg-[#303134]/50 border border-[#303134] rounded-full text-sm font-medium text-gray-300 transition flex items-center justify-center gap-2"
+                >
+                  আরও ম্যাচ <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* 📊 ডান কলাম: পজিশন/অবстояние টেবিল */}
+            <div className={`space-y-6 ${mobileTab === "standings" ? "block" : "hidden lg:block"}`}>
+              <div className="text-lg font-normal text-white pb-2 border-b border-[#303134]">
+                <span>অবস্থান</span>
+              </div>
+              <div className="space-y-4 max-h-[calc(100vh-12rem)] overflow-y-auto pr-1">
+                {Object.entries(groupStandings).map(([groupName, teams]) => (
+                  <div key={groupName} className="bg-[#171717] border border-[#303134] rounded-xl p-4">
+                    <div className="text-xs font-bold text-amber-500 mb-3 uppercase tracking-wider">গ্রুপ {groupName}</div>
+                    
+                    <div className="w-full overflow-x-auto scrollbar-none">
+                      <table className="w-full text-left text-xs text-[#bdc1c6] min-w-[240px]">
+                        <thead>
+                          <tr className="border-b border-[#303134] text-[10px] text-gray-500 font-medium">
+                            <th className="py-2 pr-2">টিম</th>
+                            <th className="py-2 text-center w-8">MP</th>
+                            <th className="py-2 text-center w-8 hidden sm:table-cell">W</th>
+                            <th className="py-2 text-center w-8 hidden sm:table-cell">D</th>
+                            <th className="py-2 text-center w-8 hidden sm:table-cell">L</th>
+                            <th className="py-2 text-center w-10 hidden sm:table-cell">GF</th>
+                            <th className="py-2 text-center w-10 hidden sm:table-cell">GA</th>
+                            <th className="py-2 text-center w-10">PTS</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[#303134]/30">
+                          {teams.map((team, idx) => (
+                            <tr key={team.name} className="hover:bg-[#202124]/50 transition">
+                              <td className="py-2 pr-2 flex items-center gap-2 max-w-[110px] sm:max-w-none">
+                                <span className="text-gray-600 text-[10px] shrink-0">{idx + 1}</span>
+                                <span className="text-gray-200 font-medium truncate">{team.name}</span>
+                              </td>
+                              <td className="py-2 text-center font-mono text-gray-400">{team.mp}</td>
+                              <td className="py-2 text-center font-mono text-gray-400 hidden sm:table-cell">{team.w}</td>
+                              <td className="py-2 text-center font-mono text-gray-400 hidden sm:table-cell">{team.d}</td>
+                              <td className="py-2 text-center font-mono text-gray-400 hidden sm:table-cell">{team.l}</td>
+                              <td className="py-2 text-center font-mono text-gray-400 hidden sm:table-cell">{team.gf}</td>
+                              <td className="py-2 text-center font-mono text-gray-400 hidden sm:table-cell">{team.ga}</td>
+                              <td className="py-2 text-center font-mono font-bold text-white">{team.pts}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                  </div>
+                ))}
+              </div>
+            </div>
+
           </div>
         )}
       </div>
+
+      {/* 🗺️ ফুল-স্ক্রিন ওভারলে মডাল */}
+      {isAllMatchesOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex justify-center items-end md:items-center p-0 md:p-4 animate-fadeIn">
+          <div className="bg-[#202124] w-full max-w-4xl h-[90vh] md:h-[85vh] rounded-t-2xl md:rounded-2xl border border-[#303134] flex flex-col overflow-hidden shadow-2xl">
+            
+            <div className="bg-[#171717] px-6 py-4 border-b border-[#303134] flex items-center justify-between shrink-0">
+              <h2 className="text-md md:text-lg font-normal text-white truncate pr-4">২০২৬ ফিফা ওয়ার্ল্ড কাপ ম্যাচ (সমস্ত সময়সূচী)</h2>
+              <button 
+                onClick={() => setIsAllMatchesOpen(false)}
+                className="p-1 rounded-full hover:bg-[#303134] text-gray-400 hover:text-white transition shrink-0"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-8 bg-[#1f2023] scrollbar-thin scrollbar-thumb-[#303134]">
+              {getGroupedFixtures(fixtures).map(({ groupName, isCurrentGroup, matches }, idx) => (
+                <div 
+                  key={idx} 
+                  className="space-y-3"
+                  ref={(el) => setScrollRef(isCurrentGroup, el)}
+                >
+                  <div className={`text-xs font-medium px-4 py-2 rounded-lg border ${
+                    isCurrentGroup 
+                      ? "bg-amber-950/20 text-amber-400 border-amber-500/30" 
+                      : "bg-[#282a2d] text-gray-300 border-[#303134]/60"
+                  }`}>
+                    {groupName} {isCurrentGroup && "• (চলমান)"}
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {matches.map(match => renderMatchCard(match))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* 📱 রেসপনসিভ মোবাইল বটম বার */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#171717] border-t border-[#303134] h-14 z-40 flex items-center justify-around px-4">
+        <button onClick={() => setMobileTab("matches")} className={`flex flex-col items-center justify-center w-20 h-full ${mobileTab === "matches" ? "text-amber-500 font-bold" : "text-gray-500"}`}>
+          <List className="w-5 h-5 mb-0.5" /><span className="text-[10px]">খেলা</span>
+        </button>
+        <button onClick={() => setMobileTab("standings")} className={`flex flex-col items-center justify-center w-20 h-full ${mobileTab === "standings" ? "text-amber-500 font-bold" : "text-gray-500"}`}>
+          <BarChart3 className="w-5 h-5 mb-0.5" /><span className="text-[10px]">অবস্থান</span>
+        </button>
+      </div>
+
     </div>
   );
 }

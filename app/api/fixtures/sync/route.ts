@@ -1,110 +1,5 @@
-// // app/api/fixtures/sync/route.ts
-// import { NextResponse } from "next/server";
 
-// // football-data.org এর স্ট্যাটাসকে ফ্রন্টএন্ডের ইউনিফর্ম স্ট্যাটাসে রূপান্তর করার ম্যাপিং
-// const statusMapping: Record<string, string> = {
-//   SCHEDULED: "SCHEDULED",
-//   TIMED: "SCHEDULED",
-//   LIVE: "LIVE",
-//   IN_PLAY: "LIVE",
-//   PAUSED: "LIVE",
-//   FINISHED: "FINISHED",
-//   POSTPONED: "POSTPONED",
-//   SUSPENDED: "POSTPONED",
-//   CANCELLED: "CANCELLED",
-// };
 
-// export async function GET(req: Request) {
-//   try {
-//     // ১. ইউআরএল কোয়েরি প্যারামিটার থেকে competitionCode এবং season নেওয়া
-//     const { searchParams } = new URL(req.url);
-    
-//     // WC (FIFA World Cup), PL (Premier League), CL (Champions League) ইত্যাদি
-//     const competitionCode = searchParams.get("competitionCode") || "WC"; 
-//     const season = searchParams.get("season") || "2026";
-//     const statusFilter = searchParams.get("status") || "ALL"; // ALL, LIVE, SCHEDULED, FINISHED
-
-//     // ২. Server Environment থেকে API Key চেক করা
-//     const apiKey = process.env.FOOTBALL_DATA_API_KEY;
-//     if (!apiKey) {
-//       return NextResponse.json(
-//         { message: "Server configuration error: API Key is missing" }, 
-//         { status: 500 }
-//       );
-//     }
-
-//     // ৩. football-data.org এপিআই এন্ডপয়েন্ট তৈরি
-//     // const targetUrl = `https://api.football-data.org/v4/competitions/${competitionCode}/matches?season=${season}`;
-//     const targetUrl = `https://api.football-data.org/v4/competitions/${competitionCode}/matches?season=${season}`;
-    
-//     const apiResponse = await fetch(targetUrl, {
-//       headers: {
-//         "X-Auth-Token": apiKey,
-//       },
-//       next: { revalidate: 30 } // ৩০ সেকেন্ডের জন্য ক্যাশ করবে যাতে প্রতি রিফ্রেশে থার্ড-পার্টি API ব্লক না করে
-//     });
-
-//     if (!apiResponse.ok) {
-//       const errText = await apiResponse.text();
-//       console.error("Football-Data API Public Error:", errText);
-//       return NextResponse.json(
-//         { message: "ফুটবল এপিআই ডাটা সরবরাহ করতে পারেনি।" }, 
-//         { status: 400 }
-//       );
-//     }
-
-//     const footballData = await apiResponse.json();
-//     const matches = footballData.matches || [];
-
-//     // ৪. থার্ড-পার্টি ডাটাকে আপনার ফ্রন্টএন্ডের ইন্টারফেস (Fixture) অনুযায়ী সাজানো (Mapping)
-//     let formattedFixtures = matches.map((match: any) => {
-//       const currentStatus = statusMapping[match.status] || "SCHEDULED";
-//       const roundName = match.stage === "REGULAR_SEASON" ? `Matchday ${match.matchday}` : match.stage;
-
-//       return {
-//         id: String(match.id),
-//         season: String(season),
-//         homeTeam: match.homeTeam.shortName || match.homeTeam.name,
-//         awayTeam: match.awayTeam.shortName || match.awayTeam.name,
-//         homeTeamLogo: match.homeTeam.crest || null,
-//         awayTeamLogo: match.awayTeam.crest || null,
-//         matchDate: match.utcDate,
-//         round: roundName,
-//         venue: match.venue || null,
-//         homeScore: match.score.fullTime.home !== null ? match.score.fullTime.home : null,
-//         awayScore: match.score.fullTime.away !== null ? match.score.fullTime.away : null,
-//         status: currentStatus,
-//         category: {
-//           id: footballData.competition?.id ? String(footballData.competition.id) : "custom-id",
-//           name: footballData.competition?.name || "Football Tournament",
-//         },
-//       };
-//     });
-
-//     // ৫. যদি ফ্রন্টএন্ড থেকে নির্দিষ্ট কোনো স্ট্যাটাস ফিল্টার পাঠানো হয় (যেমন: LIVE বা FINISHED)
-//     if (statusFilter && statusFilter !== "ALL") {
-//       formattedFixtures = formattedFixtures.filter(
-//         (fixture: any) => fixture.status === statusFilter
-//       );
-//     }
-
-//     // টাইমলাইন অনুযায়ী সর্ট করা (কাছাকাছি সময়ের ম্যাচগুলো আগে থাকবে)
-//     formattedFixtures.sort((a: any, b: any) => new Date(a.matchDate).getTime() - new Date(b.matchDate).getTime());
-
-//     return NextResponse.json(formattedFixtures, {
-//       headers: {
-//         "Cache-Control": "public, s-maxage=30, stale-while-revalidate=15", 
-//       },
-//     });
-
-//   } catch (error: any) {
-//     console.error("GET_PUBLIC_FIXTURES_FROM_API_ERROR:", error);
-//     return NextResponse.json(
-//       { message: "ডাটা লোড করতে সমস্যা হয়েছে।" },
-//       { status: 500 }
-//     );
-//   }
-// }
 
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
@@ -112,7 +7,7 @@ import { prisma } from "@/lib/prisma";
 // ফুটবল এপিআই-এর স্ট্যাটাসকে আপনার MatchStatus এনামে কনভার্ট করার ম্যাপিং
 const statusMapping: Record<string, "SCHEDULED" | "LIVE" | "FINISHED" | "POSTPONED" | "CANCELLED"> = {
   SCHEDULED: "SCHEDULED",
-  TIMED: "SCHEDULED",
+  TIMED: "SCHEDULED", // API-র TIMED স্ট্যাটাসকে SCHEDULED করা হলো
   LIVE: "LIVE",
   IN_PLAY: "LIVE",
   PAUSED: "LIVE",
@@ -137,7 +32,7 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const competitionCode = searchParams.get("competitionCode") || "WC"; // default World Cup ('WC')
-    const seasonYear = searchParams.get("season") || "2026";
+    const seasonYear = searchParams.get("seasons") || "2026";
 
     const apiKey = process.env.FOOTBALL_DATA_API_KEY;
     if (!apiKey) {
@@ -155,105 +50,207 @@ export async function GET(req: Request) {
     });
 
     if (!apiResponse.ok) {
-      return NextResponse.json({ message: "ফুটবল এপিআই থেকে ডাটা পাওয়া যায়নি।" }, { status: 400 });
+      return NextResponse.json({ message: "ফুটবল এপিআই থেকে ডাটা পাওয়া যায়নি।" }, { status: 400 });
     }
 
     const footballData = await apiResponse.json();
-    
     const matches = footballData.matches || [];
+
+    console.log(`Fetched ${matches.length} matches for ${competitionCode} ${seasonYear}`);
 
     const compName = footballData.competition?.name || "FIFA World Cup";
     const compSlug = competitionCode.toLowerCase(); 
     const seasonSlug = `${compSlug}-${seasonYear}`; 
 
-    // ২. COMPETITION আপসার্ট (apiCode দিয়ে ট্র্যাকিং)
-    const dbCompetition = await prisma.competition.upsert({
-      where: { slug: compSlug },
-      update: { apiCode: competitionCode },
-      create: {
-        name: compName,
-        slug: compSlug,
-        apiCode: competitionCode,
-        type: competitionCode === "WC" ? "INTERNATIONAL" : "CLUB"
+    // ২. COMPETITION আপসার্ট
+    let dbCompetition = await prisma.competition.findFirst({
+      where: {
+        OR: [
+          { apiCode: competitionCode },
+          { slug: compSlug }
+        ]
       }
     });
+
+    if (dbCompetition) {
+      dbCompetition = await prisma.competition.update({
+        where: { id: dbCompetition.id },
+        data: { apiCode: competitionCode, name: compName }
+      });
+    } else {
+      dbCompetition = await prisma.competition.create({
+        data: {
+          name: compName,
+          slug: compSlug,
+          apiCode: competitionCode,
+          type: competitionCode === "WC" ? "INTERNATIONAL" : "CLUB"
+        }
+      });
+    }
 
     // ৩. SEASON আপসার্ট
-    const dbSeason = await prisma.season.upsert({
-      where: { slug: seasonSlug },
-      update: { isActive: true }, 
-      create: {
-        year: seasonYear,
-        slug: seasonSlug,
-        isActive: true,
-        competitionId: dbCompetition.id
+    let dbSeason = await prisma.season.findFirst({
+      where: {
+        OR: [
+          { slug: seasonSlug },
+          {
+            competitionId: dbCompetition.id,
+            year: seasonYear
+          }
+        ]
       }
     });
 
-    // ৪. টিমগুলো ডাটাবেজে এনশিওর করা (apiId দিয়ে ট্র্যাকিং)
-    const dbTeamsCache: Record<number, string> = {}; // দ্রুত আইডির রিলেশন খোঁজার জন্য মেমোরি ক্যাশ
+    if (dbSeason) {
+      dbSeason = await prisma.season.update({
+        where: { id: dbSeason.id },
+        data: { isActive: true, slug: seasonSlug }
+      });
+    } else {
+      dbSeason = await prisma.season.create({
+        data: {
+          year: seasonYear,
+          slug: seasonSlug,
+          isActive: true,
+          competitionId: dbCompetition.id
+        }
+      });
+    }
 
+    // 🛠️ নকআউটের আনডিফাইনড টিমের জন্য একটি ডিফল্ট TBD (To Be Decided) ব্যাকআপ টিম তৈরি/খুঁজে রাখা
+    let tbdTeam = await prisma.team.findFirst({ where: { slug: "tbd" } });
+    if (!tbdTeam) {
+      tbdTeam = await prisma.team.create({
+        data: {
+          apiId: 0,
+          name: "To Be Decided",
+          slug: "tbd",
+          logo: null,
+          isNational: competitionCode === "WC"
+        }
+      });
+    }
+
+    const dbTeamsCache: Record<number, string> = { 0: tbdTeam.id }; 
+
+    // ৪. টিমগুলো ডাটাবেজে এনশিওর করা
     for (const match of matches) {
-      // হোম টিম প্রসেস
+      // --- হোম টিম প্রসেস ---
       if (match.homeTeam?.id && !dbTeamsCache[match.homeTeam.id]) {
-        const homeTeamSlug = slugify(match.homeTeam.name);
-        const team = await prisma.team.upsert({
-          where: { apiId: match.homeTeam.id },
-          update: { logo: match.homeTeam.crest || null },
-          create: {
-            apiId: match.homeTeam.id,
-            name: match.homeTeam.shortName || match.homeTeam.name,
-            slug: homeTeamSlug,
-            logo: match.homeTeam.crest || null,
-            isNational: competitionCode === "WC"
+        const homeTeamSlug = slugify(match.homeTeam.shortName || match.homeTeam.name || "home-team");
+        const teamName = match.homeTeam.shortName || match.homeTeam.name;
+        const teamLogo = match.homeTeam.crest || null;
+
+        const existingTeam = await prisma.team.findFirst({
+          where: {
+            OR: [
+              { apiId: match.homeTeam.id },
+              { slug: homeTeamSlug }
+            ]
           }
         });
+
+        let team;
+        if (existingTeam) {
+          team = await prisma.team.update({
+            where: { id: existingTeam.id },
+            data: {
+              apiId: match.homeTeam.id,
+              name: teamName,
+              logo: teamLogo,
+            }
+          });
+        } else {
+          team = await prisma.team.create({
+            data: {
+              apiId: match.homeTeam.id,
+              name: teamName,
+              slug: homeTeamSlug,
+              logo: teamLogo,
+              isNational: competitionCode === "WC"
+            }
+          });
+        }
         dbTeamsCache[match.homeTeam.id] = team.id;
       }
 
-      // অ্যাওয়ে টিম প্রসেস
+      // --- অ্যাওয়ে টিম প্রসেস ---
       if (match.awayTeam?.id && !dbTeamsCache[match.awayTeam.id]) {
-        const awayTeamSlug = slugify(match.awayTeam.name);
-        const team = await prisma.team.upsert({
-          where: { apiId: match.awayTeam.id },
-          update: { logo: match.awayTeam.crest || null },
-          create: {
-            apiId: match.awayTeam.id,
-            name: match.awayTeam.shortName || match.awayTeam.name,
-            slug: awayTeamSlug,
-            logo: match.awayTeam.crest || null,
-            isNational: competitionCode === "WC"
+        const awayTeamSlug = slugify(match.awayTeam.shortName || match.awayTeam.name || "away-team");
+        const teamName = match.awayTeam.shortName || match.awayTeam.name;
+        const teamLogo = match.awayTeam.crest || null;
+
+        const existingTeam = await prisma.team.findFirst({
+          where: {
+            OR: [
+              { apiId: match.awayTeam.id },
+              { slug: awayTeamSlug }
+            ]
           }
         });
+
+        let team;
+        if (existingTeam) {
+          team = await prisma.team.update({
+            where: { id: existingTeam.id },
+            data: {
+              apiId: match.awayTeam.id,
+              name: teamName,
+              logo: teamLogo,
+            }
+          });
+        } else {
+          team = await prisma.team.create({
+            data: {
+              apiId: match.awayTeam.id,
+              name: teamName,
+              slug: awayTeamSlug,
+              logo: teamLogo,
+              isNational: competitionCode === "WC"
+            }
+          });
+        }
         dbTeamsCache[match.awayTeam.id] = team.id;
       }
     }
 
-    // ৫. MATCHES আপসার্ট (apiId দিয়ে ট্র্যাকিং - মেইন ম্যাজিক ✨)
+    // ৫. MATCHES আপসার্ট
     const syncedMatches = [];
     
     for (const match of matches) {
       const currentStatus = statusMapping[match.status] || "SCHEDULED";
-      const homeTeamUUID = dbTeamsCache[match.homeTeam.id];
-      const awayTeamUUID = dbTeamsCache[match.awayTeam.id];
+      
+      // যদি আইডি থাকে তবে ক্যাশ থেকে নিবে, না থাকলে TBD আইডিতে অ্যাসাইন হবে
+      const homeTeamUUID = match.homeTeam?.id ? dbTeamsCache[match.homeTeam.id] : tbdTeam.id;
+      const awayTeamUUID = match.awayTeam?.id ? dbTeamsCache[match.awayTeam.id] : tbdTeam.id;
 
-      if (!homeTeamUUID || !awayTeamUUID) continue; // কোনো কারণে টিম ডাটা মিস হলে স্কিপ করবে
+      if (!homeTeamUUID || !awayTeamUUID) continue; 
 
-      // গ্রুপ এবং রাউন্ডের নাম ফরমেট করা
-      let displayGroupName = match.group ? match.group.replace("_", " ") : null; // "GROUP_A" -> "GROUP A"
-      let roundName = match.stage === "REGULAR_SEASON" ? `Matchday ${match.matchday}` : match.stage;
+      // নকআউট ম্যাচের জন্য গ্রুপ নেম ফিক্স
+      let displayGroupName = match.group 
+        ? match.group.replace("_", " ") 
+        : match.stage.replace("_", " "); 
+        
+      let roundName = match.stage === "REGULAR_SEASON" ? `Matchday ${match.matchday}` : match.stage.replace("_", " ");
+
+      // সেফ স্কোর লজিক: ম্যাচ শেষ না হলে বা স্কোর লাইভ না হলে null বা 0 সেট করা
+      const homeScoreVal = match.score?.fullTime?.home !== null ? match.score?.fullTime?.home : 0;
+      const awayScoreVal = match.score?.fullTime?.away !== null ? match.score?.fullTime?.away : 0;
 
       const matchRecord = await prisma.match.upsert({
-        where: { apiId: match.id }, // এপিআই-এর ইউনিক ম্যাচ আইডি দিয়ে খুঁজবে
+        where: { apiId: match.id }, 
         update: {
-          homeScore: match.score?.fullTime?.home ?? 0,
-          awayScore: match.score?.fullTime?.away ?? 0,
+          homeTeamId: homeTeamUUID,
+          awayTeamId: awayTeamUUID,
+          homeScore: homeScoreVal,
+          awayScore: awayScoreVal,
           status: currentStatus,
-          elapsedTime: match.score?.duration === "REGULAR" ? 90 : 0,
+          elapsedTime: match.status === "FINISHED" ? 90 : 0,
           matchDate: new Date(match.utcDate),
           round: roundName,
-          groupName: displayGroupName,
-          stage: match.stage
+          groupName: displayGroupName, 
+          stage: match.stage,
+          venue: match.venue || "TBD",
         },
         create: {
           apiId: match.id,
@@ -265,8 +262,8 @@ export async function GET(req: Request) {
           groupName: displayGroupName,
           stage: match.stage,
           venue: match.venue || "TBD",
-          homeScore: match.score?.fullTime?.home ?? 0,
-          awayScore: match.score?.fullTime?.away ?? 0,
+          homeScore: homeScoreVal,
+          awayScore: awayScoreVal,
           status: currentStatus,
           elapsedTime: 0
         }
@@ -277,11 +274,11 @@ export async function GET(req: Request) {
 
     return NextResponse.json({
       success: true,
-      message: `${syncedMatches.length} টি ম্যাচ সফলভাবে ডাটাবেজে ক্রিয়েট/আপডেট (Sync) হয়েছে!`,
+      message: `${syncedMatches.length} টি ম্যাচ সফলভাবে ডাটাবেজে ক্রিয়েট/আপডেট (Sync) হয়েছে!`,
     });
 
   } catch (error: any) {
     console.error("FOOTBALL_SYNC_ERROR:", error);
-    return NextResponse.json({ message: "ডাটাবেজ সিঙ্ক করতে অভ্যন্তরীণ সমস্যা হয়েছে।" }, { status: 500 });
+    return NextResponse.json({ message: "ডাটাবেজ সিঙ্ক করতে অভ্যন্তরীণ সমস্যা হয়েছে।" }, { status: 500 });
   }
 }
