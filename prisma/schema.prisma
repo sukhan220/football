@@ -540,21 +540,32 @@ model MatchEvent {
    ৮. MATCH LINEUPS
 ====================================================== */
 model MatchLineup {
-  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  matchId   String   @db.Uuid
+  teamId    String   @db.Uuid
+  playerId  String   @db.Uuid
 
-  matchId       String        @db.Uuid
-  teamId        String        @db.Uuid
-  playerId      String        @db.Uuid
+  match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  player    Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
 
-  match         Match         @relation(fields: [matchId], references: [id], onDelete: Cascade)
-  team          Team          @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  player        Player        @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  position  String?
+  jerseyNo  Int?
+  isStarter Boolean  @default(false)
+  isCaptain Boolean  @default(false)
 
-  position      String?
-  jerseyNo      Int?
-  isStarter     Boolean       @default(false)
-  isCaptain     Boolean       @default(false)
-  createdAt     DateTime      @default(now())
+  // 📊 ⚽ নতুন যুক্ত হওয়া Player Statistics ফিল্ডস (API-Football Match Stats)
+  goals        Int     @default(0)
+  assists      Int     @default(0)
+  shotsTotal   Int     @default(0)
+  shotsOnGoal  Int     @default(0)
+  passesTotal  Int     @default(0)
+  passesAccuracy Int   @default(0) // পার্সেন্টেজ (%)
+  tackles      Int     @default(0)
+  saves        Int     @default(0) // গোলকিপারদের জন্য
+  rating       String? // যেমন: "7.5"
+
+  createdAt DateTime @default(now())
 
   @@unique([matchId, playerId])
   @@index([matchId])
@@ -676,6 +687,37 @@ model MetaTranslation {
   @@index([slug])
   @@map("meta_translations")
 }
+
+
+/* ===================================================
+   ⑫. HEAD TO HEAD (H2H STATS)
+====================================================== */
+model HeadToHead {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  
+  teamOneId   String   @db.Uuid
+  teamTwoId   String   @db.Uuid
+
+  played      Int      @default(0)
+  teamOneWins Int      @default(0)
+  teamTwoWins Int      @default(0)
+  draws       Int      @default(0)
+
+  updatedAt   DateTime @updatedAt
+
+  @@unique([teamOneId, teamTwoId])
+  @@map("head_to_heads")
+}
+
+// প্রয়োজন হলে আপনার স্কিমাতে এটি যুক্ত করতে পারেন key rotation ট্র্যাকিং এর জন্য
+model ApiKeyTracker {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  keyName    String   @unique // e.g., "MATCH_1_KEY"
+  apiValue   String
+  callsUsed  Int      @default(0)
+  lastUsedAt DateTime @default(now())
+}
+
 
 /* =========================
    ENUMS

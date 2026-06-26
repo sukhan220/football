@@ -49,6 +49,7 @@ export async function GET(req: Request) {
     }
 
     const footballData = await apiResponse.json();
+    console.log("FOOTBALL_API_RESPONSE_FOR_TODAY:", footballData);
     const matches = footballData.matches || [];
 
     // যদি আজ কোনো ম্যাচ না থাকে তবে অযথা ডাটাবেজ কুয়েরি না করে এখানেই শেষ করবে

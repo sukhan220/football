@@ -76,7 +76,7 @@ export default function Navbar({ session }: NavbarProps) {
 
   const menu = [
     { label: "News", href: "/" },
-    { label: "FIFA World Cup", href: "/E-Magazine" },
+    { label: "FIFA World Cup", href: "/E-Magazine/Fixtures" },
     { label: "Score", href: "/live-score" },
   ];
 

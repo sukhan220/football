@@ -167,6 +167,21 @@
   --z-index-999999: 999999;
 }
 
+
+/* হাইড স্ক্রলবার ফর ক্রোম, সাফারি এবং অপেরা */
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* হাইড স্ক্রলবার ফর আইই, এজ এবং ফায়ারফক্স */
+html, body {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 /*
   The default border color has changed to `currentColor` in Tailwind CSS v4,
   so we've added these compatibility styles to make sure everything still

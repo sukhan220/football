@@ -1,49 +1,373 @@
-"use client";
+// // "use client";
 
-import React from "react";
-import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+// // import React, { useEffect, useState, useRef } from "react";
+// // import { Timer, Trophy, ShieldAlert } from "lucide-react";
 
-export default function EMagazineRootPage() {
-  return (
-    <div className="space-y-8 py-4">
-      {/* বড় ব্যানার */}
-      <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-emerald-950/50 via-emerald-900/10 to-[#070b08] border border-emerald-500/10 p-8 sm:p-12 flex flex-col justify-center min-h-[280px]">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
-        <span className="text-emerald-500 text-xs font-black tracking-widest uppercase bg-emerald-950/80 border border-emerald-500/20 px-3 py-1 rounded-full w-max mb-4">
-          Official Digital Hub
-        </span>
-        <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight max-w-xl">
-          টুর্নামেন্ট ই-ম্যাগাজিন <br /><span className="text-emerald-400">এডিশন ২০২৬</span>
-        </h1>
-        <p className="text-gray-400 text-sm max-w-md mt-3 leading-relaxed">
-          ফিক্সচার, অফিসিয়াল ম্যাচ বল, মাসকট ট্র্যাকিং থেকে শুরু করে আধুনিক টেকনোলজি এবং স্টেডিয়ামের যাবতীয় খুঁটিনাটি এক্সপ্লোর করুন এক ক্লিকেই।
-        </p>
-      </div>
+// // // 💡 ১. এপিআই রেসপন্স অনুযায়ী ইন্টারফেস টাইপ একদম নিখুঁত করা হলো
+// // interface LiveMatchResponse {
+// //   fixture: {
+// //     id: number;
+// //     status: {
+// //       long: string;
+// //       elapsed: number;
+// //     };
+// //   };
+// //   teams: {
+// //     home: { 
+// //       id: number;
+// //       name?: string; // এপিআই থেকে নাম না আসলে যেন অপশনাল থাকে
+// //       logo?: string; 
+// //       goals: number;  // 💡 গোলের ডাটা মূলত এখানেই আছে
+// //     };
+// //     away: { 
+// //       id: number;
+// //       name?: string; 
+// //       logo?: string; 
+// //       goals: number; 
+// //     };
+// //   };
+// // }
 
-      {/* কুইক নেভিগেশন সেকশন */}
-      <div>
-        <h2 className="text-lg font-bold text-gray-200 mb-4 tracking-tight">সবগুলো সেকশন এক নজরে</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {[
-            { title: "ম্যাচ ফিক্সচার", desc: "খেলার সময়সূচী ও ভেন্যু", path: "/E-Magazine/fixtures", color: "from-blue-500/10" },
-            { title: "অফিসিয়াল বল", desc: "ডিজাইন ও অ্যারোডাইনামিক্স", path: "/E-Magazine/ball", color: "from-amber-500/10" },
-            { title: "টুর্নামেন্ট মাসকট", desc: "ইতিহাস এবং থিম পরিচিতি", path: "/E-Magazine/mascot", color: "from-purple-500/10" },
-          ].map((item) => (
-            <Link 
-              key={item.title} 
-              href={item.path} 
-              className={`p-5 rounded-2xl bg-gradient-to-r ${item.color} to-transparent border border-emerald-950/60 hover:border-emerald-500/30 transition-all group flex flex-col justify-between h-32`}
-            >
-              <div className="flex justify-between items-start">
-                <h3 className="font-bold text-gray-200 group-hover:text-emerald-400 transition-colors text-base">{item.title}</h3>
-                <ArrowUpRight className="w-4 h-4 text-gray-500 group-hover:text-emerald-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-              </div>
-              <p className="text-xs text-gray-500 font-normal">{item.desc}</p>
-            </Link>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
+// // export default function EMagazineRootPage() {
+// //   const [liveMatch, setLiveMatch] = useState<LiveMatchResponse | null>(null);
+// //   const [loading, setLoading] = useState(true);
+// //   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+// //   const isMatchFinished =
+// //     liveMatch?.fixture.status.long.toLowerCase().includes("finish") ||
+// //     liveMatch?.fixture.status.long.toLowerCase() === "ft";
+
+// //   // 🔒 নিজস্ব ব্যাকএন্ড রুট থেকে ডাটা নিয়ে আসা
+// //   const fetchLiveScoreFromBackend = async () => {
+// //     try {
+// //       const response = await fetch("/api/fixtures/live-score", {
+// //         cache: "no-store",
+// //       });
+
+// //       if (!response.ok) throw new Error("Backend internal fetch error");
+// //       const data = await response.json();
+
+// //       // ব্যাকঅ্যান্ড রেসপন্স স্ট্রাকচার (data.data) ভেরিফিকেশন
+// //       if (data && data.success && data.data && data.data.length > 0) {
+// //         setLiveMatch(data.data[0]); 
+// //       } else {
+// //         setLiveMatch(null);
+// //       }
+// //     } catch (error) {
+// //       console.error("Internal API Fetch Error:", error);
+// //     } finally {
+// //       setLoading(false);
+// //     }
+// //   };
+
+// //   useEffect(() => {
+// //     fetchLiveScoreFromBackend();
+
+// //     // প্রতি ১ মিনিটে রিয়েল-টাইম অটো আপডেট
+// //     intervalRef.current = setInterval(fetchLiveScoreFromBackend, 60000);
+
+// //     return () => {
+// //       if (intervalRef.current) clearInterval(intervalRef.current);
+// //     };
+// //   }, []);
+
+// //   return (
+// //     <div className="w-full max-w-4xl mx-auto px-4 py-6">
+// //       <div className="relative overflow-hidden rounded-2xl border border-neutral-800 bg-gradient-to-b from-neutral-900 via-neutral-950 to-black p-6 shadow-2xl">
+        
+// //         {/* গ্লোয়িং ইফেক্ট */}
+// //         <div className={`absolute -right-16 -top-16 h-32 w-32 rounded-full blur-[80px] ${isMatchFinished ? "bg-neutral-500/10" : "bg-red-500/10"}`} />
+
+// //         {/* টপ বার */}
+// //         <div className="flex items-center justify-between border-b border-neutral-900 pb-4 mb-6">
+// //           <div className="flex items-center gap-2">
+// //             <span className="relative flex h-2 w-2">
+// //               {!isMatchFinished && (
+// //                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+// //               )}
+// //               <span className={`relative inline-flex rounded-full h-2 w-2 ${isMatchFinished ? "bg-neutral-500" : "bg-red-500"}`}></span>
+// //             </span>
+// //             <h2 className={`text-xs font-bold uppercase tracking-widest ${isMatchFinished ? "text-neutral-400" : "text-red-400"}`}>
+// //               {isMatchFinished ? "Match Finished" : "Live Scoreboard"}
+// //             </h2>
+// //           </div>
+// //           <div className="flex items-center gap-1 rounded-full bg-neutral-900/80 px-3 py-1 border border-neutral-800">
+// //             <Trophy className="h-3 w-3 text-amber-500" />
+// //             <span className="text-[10px] text-neutral-400 font-medium">API-Sports Live</span>
+// //           </div>
+// //         </div>
+
+// //         {/* লোডিং বা কন্টেন্ট স্টেট */}
+// //         {loading ? (
+// //           <div className="flex flex-col items-center justify-center py-8 space-y-3">
+// //             <div className="h-6 w-6 animate-spin rounded-full border-2 border-red-500 border-t-transparent" />
+// //             <p className="text-neutral-400 text-xs font-medium">লাইভ স্কোরবোর্ড আপডেট হচ্ছে...</p>
+// //           </div>
+// //         ) : liveMatch ? (
+// //           <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-6">
+            
+// //             {/* স্কোর সেকশন */}
+// //             <div className="md:col-span-2 flex items-center justify-between bg-neutral-900/30 backdrop-blur-sm rounded-xl p-4 border border-neutral-900/50">
+              
+// //               {/* হোম টিম */}
+// //               <div className="flex flex-col items-center flex-1 text-center">
+// //                 <div className="relative flex items-center justify-center bg-neutral-900/60 p-2.5 rounded-2xl border border-neutral-800 w-16 h-16">
+// //                   {liveMatch.teams.home.logo ? (
+// //                     <img src={liveMatch.teams.home.logo} alt="Home Logo" className="w-12 h-12 object-contain" />
+// //                   ) : (
+// //                     <div className="w-12 h-12 bg-neutral-800 rounded-md flex items-center justify-center text-[10px] text-neutral-500">No Logo</div>
+// //                   )}
+// //                 </div>
+// //                 <p className="text-xs text-neutral-200 font-bold mt-3 max-w-[120px] truncate uppercase tracking-wide">
+// //                   {liveMatch.teams.home.name || `TEAM ${liveMatch.teams.home.id}`}
+// //                 </p>
+// //                 {/* 💡 গোলের ডাটা এখন সরাসরি সঠিক অবজেক্ট থেকে রিড হবে */}
+// //                 <p className="text-4xl md:text-5xl font-black text-white mt-2 font-mono tracking-tighter bg-gradient-to-b from-white to-neutral-400 bg-clip-text text-transparent">
+// //                   {liveMatch.teams.home.goals ?? 0}
+// //                 </p>
+// //               </div>
+
+// //               {/* VS */}
+// //               <div className="px-4 text-center">
+// //                 <span className="text-xs font-black tracking-widest text-neutral-700 bg-neutral-950 px-2.5 py-1 rounded-md border border-neutral-900 font-mono">VS</span>
+// //               </div>
+
+// //               {/* অ্যাওয়ে টিম */}
+// //               <div className="flex flex-col items-center flex-1 text-center">
+// //                 <div className="relative flex items-center justify-center bg-neutral-900/60 p-2.5 rounded-2xl border border-neutral-800 w-16 h-16">
+// //                   {liveMatch.teams.away.logo ? (
+// //                     <img src={liveMatch.teams.away.logo} alt="Away Logo" className="w-12 h-12 object-contain" />
+// //                   ) : (
+// //                     <div className="w-12 h-12 bg-neutral-800 rounded-md flex items-center justify-center text-[10px] text-neutral-500">No Logo</div>
+// //                   )}
+// //                 </div>
+// //                 <p className="text-xs text-neutral-200 font-bold mt-3 max-w-[120px] truncate uppercase tracking-wide">
+// //                   {liveMatch.teams.away.name || `TEAM ${liveMatch.teams.away.id}`}
+// //                 </p>
+// //                 {/* 💡 গোলের ডাটা এখন সরাসরি সঠিক অবজেক্ট থেকে রিড হবে */}
+// //                 <p className="text-4xl md:text-5xl font-black text-white mt-2 font-mono tracking-tighter bg-gradient-to-b from-white to-neutral-400 bg-clip-text text-transparent">
+// //                   {liveMatch.teams.away.goals ?? 0}
+// //                 </p>
+// //               </div>
+
+// //             </div>
+
+// //             {/* টাইমার সেকশন */}
+// //             <div className="flex flex-col items-center justify-center bg-gradient-to-b from-neutral-900/60 to-neutral-950/40 border border-neutral-800 px-5 py-6 rounded-xl h-full">
+// //               <div className="p-2.5 rounded-xl bg-neutral-950 mb-3 border border-neutral-800">
+// //                 <Timer className={`w-5 h-5 ${isMatchFinished ? "text-neutral-500" : "text-emerald-400 animate-pulse"}`} />
+// //               </div>
+// //               <p className="text-[10px] text-neutral-400 font-black uppercase tracking-widest text-center mb-1">
+// //                 {liveMatch.fixture.status.long}
+// //               </p>
+// //               <p className="text-xl font-mono font-black tracking-tight text-emerald-400">
+// //                 {liveMatch.fixture.status.elapsed}' MINS
+// //               </p>
+// //             </div>
+
+// //           </div>
+// //         ) : (
+// //           <div className="flex flex-col items-center justify-center py-6 text-center space-y-2">
+// //             <ShieldAlert className="h-6 w-6 text-neutral-600" />
+// //             <p className="text-neutral-400 text-xs font-semibold tracking-wide">
+// //               এই মুহূর্তে কোনো লাইভ ম্যাচ পাওয়া যায়নি।
+// //             </p>
+// //           </div>
+// //         )}
+
+// //       </div>
+// //     </div>
+// //   );
+// // }
+
+
+// "use client";
+
+// import React, { useEffect, useState, useRef } from "react";
+// import { Timer, Trophy, ShieldAlert } from "lucide-react";
+
+// interface LiveMatchResponse {
+//   fixture: {
+//     id: number;
+//     status: {
+//       long: string;
+//       elapsed: number;
+//     };
+//   };
+//   teams: {
+//     home: { 
+//       id: number;
+//       name?: string; 
+//       logo?: string; 
+//       goals: number;  
+//     };
+//     away: { 
+//       id: number;
+//       name?: string; 
+//       logo?: string; 
+//       goals: number; 
+//     };
+//   };
+// }
+
+// export default function EMagazineRootPage() {
+//   const [liveMatch, setLiveMatch] = useState<LiveMatchResponse | null>(null);
+//   const [loading, setLoading] = useState(true);
+//   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+//   const isMatchFinished =
+//     liveMatch?.fixture.status.long.toLowerCase().includes("finish") ||
+//     liveMatch?.fixture.status.long.toLowerCase() === "ft";
+
+//   // 🔒 নিজস্ব ব্যাকএন্ড রুট থেকে ডাটা নিয়ে আসা
+//   const fetchLiveScoreFromBackend = async () => {
+//     try {
+//       const response = await fetch("/api/fixtures/live-score", {
+//         cache: "no-store",
+//       });
+
+//       if (!response.ok) throw new Error("Backend internal fetch error");
+//       const data = await response.json();
+
+//       if (data && data.success && data.data && data.data.length > 0) {
+//         const currentMatch = data.data[0];
+//         setLiveMatch(currentMatch); 
+
+//         // 💡 ম্যাজিক লজিক: ম্যাচ যদি ফুল টাইম (FT) বা ফিনিশড হয়, তবে ইন্টারভাল বন্ধ করে দেওয়া হবে
+//         const statusLong = currentMatch.fixture.status.long.toLowerCase();
+//         if (statusLong.includes("finish") || statusLong === "ft") {
+//           if (intervalRef.current) {
+//             console.log("[EMagazine API] Match finished. Clearing interval timer...");
+//             clearInterval(intervalRef.current);
+//             intervalRef.current = null;
+//           }
+//         }
+//       } else {
+//         setLiveMatch(null);
+//       }
+//     } catch (error) {
+//       console.error("Internal API Fetch Error:", error);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   useEffect(() => {
+//     // প্রথমবার স্ক্রিন লোড হতেই ডাটা ফেচ হবে
+//     fetchLiveScoreFromBackend();
+
+//     // প্রতি ১ মিনিটে রিয়েল-টাইম অটো আপডেট শুরু
+//     intervalRef.current = setInterval(fetchLiveScoreFromBackend, 60000);
+
+//     // কম্পোনেন্ট আনমাউন্ট হলে সেফটি ক্লিনআপ
+//     return () => {
+//       if (intervalRef.current) clearInterval(intervalRef.current);
+//     };
+//   }, []);
+
+//   return (
+//     <div className="w-full max-w-4xl mx-auto px-4 py-6">
+//       <div className="relative overflow-hidden rounded-2xl border border-neutral-800 bg-gradient-to-b from-neutral-900 via-neutral-950 to-black p-6 shadow-2xl">
+        
+//         {/* গ্লোয়িং ইফেক্ট */}
+//         <div className={`absolute -right-16 -top-16 h-32 w-32 rounded-full blur-[80px] ${isMatchFinished ? "bg-neutral-500/10" : "bg-red-500/10"}`} />
+
+//         {/* টপ বার */}
+//         <div className="flex items-center justify-between border-b border-neutral-900 pb-4 mb-6">
+//           <div className="flex items-center gap-2">
+//             <span className="relative flex h-2 w-2">
+//               {!isMatchFinished && (
+//                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+//               )}
+//               <span className={`relative inline-flex rounded-full h-2 w-2 ${isMatchFinished ? "bg-neutral-500" : "bg-red-500"}`}></span>
+//             </span>
+//             <h2 className={`text-xs font-bold uppercase tracking-widest ${isMatchFinished ? "text-neutral-400" : "text-red-400"}`}>
+//               {isMatchFinished ? "Match Finished" : "Live Scoreboard"}
+//             </h2>
+//           </div>
+//           <div className="flex items-center gap-1 rounded-full bg-neutral-900/80 px-3 py-1 border border-neutral-800">
+//             <Trophy className="h-3 w-3 text-amber-500" />
+//             <span className="text-[10px] text-neutral-400 font-medium">API-Sports Live</span>
+//           </div>
+//         </div>
+
+//         {/* লোডিং বা কন্টেন্ট স্টেট */}
+//         {loading ? (
+//           <div className="flex flex-col items-center justify-center py-8 space-y-3">
+//             <div className="h-6 w-6 animate-spin rounded-full border-2 border-red-500 border-t-transparent" />
+//             <p className="text-neutral-400 text-xs font-medium">লাইভ স্কোরবোর্ড আপডেট হচ্ছে...</p>
+//           </div>
+//         ) : liveMatch ? (
+//           <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-6">
+            
+//             {/* স্কোর সেকশন */}
+//             <div className="md:col-span-2 flex items-center justify-between bg-neutral-900/30 backdrop-blur-sm rounded-xl p-4 border border-neutral-900/50">
+              
+//               {/* হোম টিম */}
+//               <div className="flex flex-col items-center flex-1 text-center">
+//                 <div className="relative flex items-center justify-center bg-neutral-900/60 p-2.5 rounded-2xl border border-neutral-800 w-16 h-16">
+//                   {liveMatch.teams.home.logo ? (
+//                     <img src={liveMatch.teams.home.logo} alt="Home Logo" className="w-12 h-12 object-contain" />
+//                   ) : (
+//                     <div className="w-12 h-12 bg-neutral-800 rounded-md flex items-center justify-center text-[10px] text-neutral-500">No Logo</div>
+//                   )}
+//                 </div>
+//                 <p className="text-xs text-neutral-200 font-bold mt-3 max-w-[120px] truncate uppercase tracking-wide">
+//                   {liveMatch.teams.home.name || `TEAM ${liveMatch.teams.home.id}`}
+//                 </p>
+//                 <p className="text-4xl md:text-5xl font-black text-white mt-2 font-mono tracking-tighter bg-gradient-to-b from-white to-neutral-400 bg-clip-text text-transparent">
+//                   {liveMatch.teams.home.goals ?? 0}
+//                 </p>
+//               </div>
+
+//               {/* VS */}
+//               <div className="px-4 text-center">
+//                 <span className="text-xs font-black tracking-widest text-neutral-700 bg-neutral-950 px-2.5 py-1 rounded-md border border-neutral-900 font-mono">VS</span>
+//               </div>
+
+//               {/* অ্যাওয়ে টিম */}
+//               <div className="flex flex-col items-center flex-1 text-center">
+//                 <div className="relative flex items-center justify-center bg-neutral-900/60 p-2.5 rounded-2xl border border-neutral-800 w-16 h-16">
+//                   {liveMatch.teams.away.logo ? (
+//                     <img src={liveMatch.teams.away.logo} alt="Away Logo" className="w-12 h-12 object-contain" />
+//                   ) : (
+//                     <div className="w-12 h-12 bg-neutral-800 rounded-md flex items-center justify-center text-[10px] text-neutral-500">No Logo</div>
+//                   )}
+//                 </div>
+//                 <p className="text-xs text-neutral-200 font-bold mt-3 max-w-[120px] truncate uppercase tracking-wide">
+//                   {liveMatch.teams.away.name || `TEAM ${liveMatch.teams.away.id}`}
+//                 </p>
+//                 <p className="text-4xl md:text-5xl font-black text-white mt-2 font-mono tracking-tighter bg-gradient-to-b from-white to-neutral-400 bg-clip-text text-transparent">
+//                   {liveMatch.teams.away.goals ?? 0}
+//                 </p>
+//               </div>
+
+//             </div>
+
+//             {/* টাইমার সেকশন */}
+//             <div className="flex flex-col items-center justify-center bg-gradient-to-b from-neutral-900/60 to-neutral-950/40 border border-neutral-800 px-5 py-6 rounded-xl h-full">
+//               <div className="p-2.5 rounded-xl bg-neutral-950 mb-3 border border-neutral-800">
+//                 <Timer className={`w-5 h-5 ${isMatchFinished ? "text-neutral-500" : "text-emerald-400 animate-pulse"}`} />
+//               </div>
+//               <p className="text-[10px] text-neutral-400 font-black uppercase tracking-widest text-center mb-1">
+//                 {liveMatch.fixture.status.long}
+//               </p>
+//               <p className={`text-xl font-mono font-black tracking-tight ${isMatchFinished ? "text-red-400" : "text-emerald-400"}`}>
+//                 {isMatchFinished ? "FT" : `${liveMatch.fixture.status.elapsed}' MINS`}
+//               </p>
+//             </div>
+
+//           </div>
+//         ) : (
+//           <div className="flex flex-col items-center justify-center py-6 text-center space-y-2">
+//             <ShieldAlert className="h-6 w-6 text-neutral-600" />
+//             <p className="text-neutral-400 text-xs font-semibold tracking-wide">
+//               এই মুহূর্তে কোনো লাইভ ম্যাচ পাওয়া যায়নি।
+//             </p>
+//           </div>
+//         )}
+
+//       </div>
+//     </div>
+//   );
+// }
