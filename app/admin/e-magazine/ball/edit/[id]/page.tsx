@@ -1,8 +1,10 @@
+
+
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, startTransition } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { Trash2, CloudUpload, Calendar, Loader2, ArrowLeft } from "lucide-react";
+import { CloudUpload, Calendar, Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 interface CategoryTranslation {
@@ -20,7 +22,6 @@ export default function EditBallMagazineCard() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  // URL থেকে আইডি এবং ড্যাশবোর্ডের সিলেক্ট করা ভাষা তুলে আনা হচ্ছে
   const ballId = params.id as string;
   const initialLang = (searchParams.get("lang") as "BN" | "EN") || "BN";
 
@@ -31,13 +32,12 @@ export default function EditBallMagazineCard() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
   const [seasonId, setSeasonId] = useState<string>("");
 
-  // একক বলের এডিটেবল ডাটা স্টেট
   const [year, setYear] = useState<number>(2026);
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
-  const [existingImageUrl, setExistingImageUrl] = useState<string>(""); // আগের আপলোড করা ছবির ব্যাকআপ
+  const [existingImageUrl, setExistingImageUrl] = useState<string>("");
 
   // ==========================================
   // ১. ডাটাবেজ থেকে ক্যাটাগরি এবং বলের তথ্য লোড করা
@@ -67,25 +67,49 @@ export default function EditBallMagazineCard() {
             
             if (ballData.image) {
               setExistingImageUrl(ballData.image);
-              setImagePreview(ballData.image); // UI প্রিভিউতে আগের ছবি শো করবে
+              setImagePreview(ballData.image);
             }
 
-            // সিলেক্টেড ভাষা অনুযায়ী ট্রান্সলেশন ডাটা ফর্ম ইনপুটে বসানো হচ্ছে
+            // সিলেক্টেড ভাষা অনুযায়ী ট্রান্সলেশন ডাটা ফিল্টার
             const translation = ballData.translations?.find((t: any) => t.language === lang);
+            
             setTitle(translation?.title || "");
-            setDescription(translation?.content || "");
+
+            // 🎯 অবজেক্ট এবং স্ট্রিংগিফাইড JSON হ্যান্ডেল করার চূড়ান্ত সেফগার্ড ট্রিক
+            const rawContent = translation?.content || translation?.description || "";
+
+            if (rawContent) {
+              if (typeof rawContent === "object") {
+                // যদি সরাসরি অবজেক্ট আসে
+                setDescription(rawContent.description || rawContent.content || rawContent.text || "");
+              } else if (typeof rawContent === "string") {
+                // যদি অবজেক্টটি স্ট্রিং আকারে আসে (যেমন: {"description": "..."})
+                if (rawContent.trim().startsWith("{")) {
+                  try {
+                    const parsed = JSON.parse(rawContent);
+                    setDescription(parsed.description || parsed.content || parsed.text || rawContent);
+                  } catch (e) {
+                    setDescription(rawContent); // পার্সিং ফেইল করলে ব্যাকআপ হিসেবে মূল টেক্সট
+                  }
+                } else {
+                  setDescription(rawContent); // নরমাল প্লেইন স্ট্রিং হলে সরাসরি সেট হবে
+                }
+              }
+            } else {
+              setDescription("");
+            }
           }
         }
       } catch (err) {
         console.error("Failed to load edit data:", err);
-        alert("ডাটা লোড করতে ব্যর্থ হয়েছে ভাই!");
+        alert("ডাটা লোড করতে ব্যর্থ হয়েছে!");
       } finally {
         setLoading(false);
       }
     }
 
     if (ballId) fetchOperationalData();
-  }, [ballId, lang]); // ভাষা বা আইডি চেঞ্জ হলে তথ্য পুনরায় সিঙ্ক হবে
+  }, [ballId, lang]);
 
   // 📸 লোকাল ছবি পরিবর্তনের প্রিভিউ জেনারেটর
   const handleImageChange = (file: File | null) => {
@@ -98,7 +122,7 @@ export default function EditBallMagazineCard() {
   // ⚡ UPDATE HANDLER (PUT Request)
   // ==========================================
   const handleUpdate = async () => {
-    if (!title.trim()) return alert("দয়া করে বলের টাইটেলটি লিখুন!");
+    if (!title.trim()) return alert("দয়া করে বলের টাইটেলটি লিখুন!");
 
     setSaveLoading(true);
 
@@ -112,7 +136,6 @@ export default function EditBallMagazineCard() {
       formData.append("title", title);
       formData.append("description", description);
 
-      // নতুন ছবি আপলোড করলে সেটা FormData তে যাবে, না করলে ব্যাকএন্ডে আগের URL ট্র্যাকিং থাকবে
       if (imageFile) {
         formData.append("image", imageFile);
       } else {
@@ -120,21 +143,31 @@ export default function EditBallMagazineCard() {
       }
 
       const res = await fetch("/api/magazine/ball", {
-        method: "PUT", // এডিটের জন্য PUT অথবা মেথড টানেলিং অনুযায়ী POST ব্যবহার করতে পারেন
+        method: "PUT", 
         body: formData,
       });
 
-      const result = await res.json();
-
-      if (result.success) {
-        alert("🎉 বলের তথ্য সফলভাবে আপডেট হয়েছে ভাই!");
-        router.push("/admin/balls"); // আপডেট শেষে মেইন ড্যাশবোর্ডে রিডাইরেক্ট
-      } else {
-        alert(`আপডেট ব্যর্থ হয়েছে: ${result.error || "Database error"}`);
+      // প্লেইন টেক্সট ক্র্যাশ এড়াতে আগে রেসপন্স টেক্সট চেক করা
+      const responseText = await res.text();
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch (e) {
+        throw new Error(`সার্ভার থেকে ইনভ্যালিড রেসপন্স এসেছে: ${responseText.substring(0, 50)}`);
       }
-    } catch (err) {
+
+      if (res.ok && (result.success || !result.error)) {
+        alert("🎉 বলের তথ্য সফলভাবে আপডেট হয়েছে ভাই!");
+        startTransition(() => {
+          router.push("/admin/e-magazine/ball"); // আপনার সঠিক লিস্ট ভিউ রুট পাথ
+          router.refresh();
+        });
+      } else {
+        alert(`আপডেট ব্যর্থ হয়েছে: ${result.error || "Database error"}`);
+      }
+    } catch (err: any) {
       console.error(err);
-      alert("সার্ভার কানেকশন এরর!");
+      alert(err.message || "সার্ভার কানেকশন এরর!");
     } finally {
       setSaveLoading(false);
     }
@@ -158,7 +191,7 @@ export default function EditBallMagazineCard() {
           <div className="flex items-center gap-4">
             
             {/* ব্যাক বাটন */}
-            <Link href="/admin/balls" className="p-2 hover:bg-neutral-100 rounded-lg text-neutral-500 transition" title="ফিরে যান">
+            <Link href="/admin/e-magazine/ball" className="p-2 hover:bg-neutral-100 rounded-lg text-neutral-500 transition" title="ফিরে যান">
               <ArrowLeft className="w-4 h-4" />
             </Link>
 
@@ -197,7 +230,7 @@ export default function EditBallMagazineCard() {
                     );
                   })
                 ) : (
-                  <option value="BALL">⚽ ফুটবল বল (Default)</option>
+                  <option value="">⚽ ফুটবল বল (Default)</option>
                 )}
               </select>
               <div className="absolute inset-y-0 right-2.5 flex items-center pointer-events-none text-neutral-400 text-[10px]">
@@ -212,7 +245,7 @@ export default function EditBallMagazineCard() {
                 type="number" 
                 value={year}
                 onChange={(e) => setYear(Number(e.target.value))}
-                className="w-16 bg-neutral-50 border border-neutral-200 rounded px-1.5 py-0.5 focus:outline-none text-center"
+                className="w-18 bg-neutral-50 border border-neutral-200 rounded px-1.5 py-0.5 focus:outline-none text-center"
               />
             </div>
           </div>
@@ -228,7 +261,7 @@ export default function EditBallMagazineCard() {
           </button>
         </div>
 
-        {/* ২. এডিটর ফর্ম কার্ড এরিয়া */}
+        {/* ২. এডিটর ফর্ম কার্ড এরিয়া */}
         <div className="bg-white rounded-2xl border border-neutral-200/80 p-8 shadow-sm relative flex flex-col md:flex-row gap-8 items-start">
           
           {/* [বামে] ড্যাশড ইমেজ আপলোডার */}
@@ -278,7 +311,7 @@ export default function EditBallMagazineCard() {
                 +
               </button>
               <textarea
-                placeholder={lang === "BN" ? "বলটির ইতিহাস বা বিবরণ বাংলায় লিখুন..." : "Tell the story of this ball..."}
+                placeholder={lang === "BN" ? "বলটির ইতিহাস বা বিবরণ বাংলায় লিখুন..." : "Tell the story of this ball..."}
                 rows={6}
                 className="w-full bg-transparent text-base leading-relaxed focus:outline-none resize-none placeholder:text-neutral-300 text-neutral-600 pt-0.5"
                 value={description}

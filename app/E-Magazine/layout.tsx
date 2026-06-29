@@ -59,11 +59,11 @@ export default function EMagazineLayout({ children }: { children: React.ReactNod
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#050705] text-gray-100 antialiased font-sans selection:bg-emerald-500 selection:text-black relative">
+    <div className="min-h-screen bg-[#252725] text-gray-100 antialiased font-sans selection:bg-emerald-500 selection:text-black relative">
       
       {/* ================= 🌌 ১. ফিক্সড ৩ডি পার্সপেক্টিভ নেভিগেশন বার ================= */}
       <nav 
-        className="fixed top-4 left-1/2 -translate-x-1/2 z-[999] w-full max-w-5xl px-4 filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.7)]"
+        className="fixed top-1 left-1/2 -translate-x-1/2 z-[999] w-full max-w-5xl px-4 filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.7)]"
         style={{ perspective: "800px" }}
       >
         <div 
@@ -105,7 +105,7 @@ export default function EMagazineLayout({ children }: { children: React.ReactNod
       </nav>
 
       {/* ================= 📂 ২. মেইন কন্টেন্ট এরিয়া ================= */}
-      <main className="w-full pt-24 md:pt-32">
+      <main className="w-full">
         {children}
       </main>
 

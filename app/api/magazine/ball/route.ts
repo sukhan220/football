@@ -1,3 +1,5 @@
+//api/magazine/ball/route.ts
+
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { v2 as cloudinary } from "cloudinary";
@@ -28,10 +30,16 @@ export async function POST(request: Request) {
     const cardsData = JSON.parse(cardsDataRaw);
     const preparedCards: any[] = [];
 
-    // 🚚 ডাটাবেজ ট্রানজেকশনের বাইরে সব ইমেজ আপলোড আগে শেষ করা হচ্ছে (টাইমআউট ফিক্স)
+    const imageFiles = formData.getAll("images") as File[];
+    
+    const fileMap: Record<string, File> = {};
+    imageFiles.forEach((file) => {
+      fileMap[file.name] = file;
+    });
+
     for (const card of cardsData) {
       let uploadedImageUrl = "";
-      const imageFile = formData.get(`image_${card.id}`) as File | null;
+      const imageFile = fileMap[card.clientTrackingId] || null;
 
       if (imageFile && imageFile.size > 0) {
         try {
@@ -50,7 +58,7 @@ export async function POST(request: Request) {
 
           uploadedImageUrl = uploadResult.secure_url;
         } catch (uploadError: any) {
-          console.error(`Cloudinary upload failed for card ${card.id}:`, uploadError);
+          console.error(`Cloudinary upload failed for card ${card.clientTrackingId}:`, uploadError);
           return NextResponse.json(
             { success: false, error: `Image upload failed: ${uploadError.message}` },
             { status: 502 }
@@ -64,7 +72,6 @@ export async function POST(request: Request) {
       });
     }
 
-    // ⚡ ডাটাবেজ ট্রানজেকশন স্টার্ট
     const createdBalls = await prisma.$transaction(async (tx) => {
       const savedList = [];
 
@@ -73,26 +80,29 @@ export async function POST(request: Request) {
         const inputDesc = card.description || "";
         const slugValue = slugify(inputTitle, { lower: true, strict: true }) || `ball-${Date.now()}`;
 
+        const bnContentObj = currentLang === "BN" ? { description: inputDesc } : {};
+        const enContentObj = currentLang === "EN" ? { description: inputDesc } : {};
+
         const newBall = await tx.tournamentMeta.create({
           data: {
             seasonId,
             category: "BALL",
             year: Number(card.year) || 2026,
             displayOrder: 0,
-            image: card.uploadedImageUrl,
+            image: card.uploadedImageUrl || null,
             translations: {
               create: [
                 {
                   language: "BN",
                   title: currentLang === "BN" ? inputTitle : `BN - ${inputTitle}`,
                   slug: `${slugValue}-bn-${card.year}-${Date.now()}`,
-                  content: currentLang === "BN" ? inputDesc : "",
+                  content: bnContentObj,
                 },
                 {
                   language: "EN",
                   title: currentLang === "EN" ? inputTitle : `EN - ${inputTitle}`,
                   slug: `${slugValue}-en-${card.year}-${Date.now()}`,
-                  content: currentLang === "EN" ? inputDesc : "",
+                  content: enContentObj,
                 }
               ]
             }
@@ -154,53 +164,85 @@ export async function GET(request: Request) {
 }
 
 // ==========================================
-// 3. UPDATE (PUT) - ফিক্সড মেথড
+// 3. UPDATE (PUT) - 🛠️ ফর্ম-ডাটা ও ক্লাউডিনারি ফিক্সড মেথড
 // ==========================================
 export async function PUT(request: Request) {
   try {
-    const body = await request.json();
-    const { id, year, displayOrder, image, bgGradient, translations } = body;
+    // 💡 ফিক্স: request.json() এর বদলে request.formData() ব্যবহার করা হয়েছে
+    const formData = await request.formData();
+    const id = formData.get("id") as string;
+    const seasonId = formData.get("seasonId") as string;
+    const categoryId = formData.get("categoryId") as string;
+    const currentLang = formData.get("language") as "BN" | "EN";
+    const year = formData.get("year") as string;
+    const title = formData.get("title") as string;
+    const description = formData.get("description") as string;
+    const existingImageUrl = formData.get("existingImageUrl") as string;
+    
+    // নতুন কোনো ফাইল আপলোড করা হয়েছে কি না তা চেক করা
+    const imageFile = formData.get("image") as File | null;
 
     if (!id) {
       return NextResponse.json({ success: false, error: "Ball ID is required for update" }, { status: 400 });
     }
 
-    // ডাটাবেজ ট্রানজেকশনের মাধ্যমে ওল্ড ট্রান্সলেশন ডিলিট এবং নিউ ডাটা আপডেট একসাথে করা হচ্ছে
+    let finalImageUrl = existingImageUrl || null;
+
+    // 📸 যদি নতুন ইমেজ ফাইল পাওয়া যায়, তবে সেটি ক্লাউডিনারিতে আপলোড হবে
+    if (imageFile && imageFile.size > 0) {
+      try {
+        const arrayBuffer = await imageFile.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        const uploadResult = await new Promise<any>((resolve, reject) => {
+          cloudinary.uploader.upload_stream(
+            { folder: "magazine_balls" },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          ).end(buffer);
+        });
+
+        finalImageUrl = uploadResult.secure_url;
+      } catch (uploadError: any) {
+        console.error("Cloudinary upload failed during update:", uploadError);
+        return NextResponse.json({ success: false, error: "Image upload failed" }, { status: 502 });
+      }
+    }
+
     const updatedBall = await prisma.$transaction(async (tx) => {
-      // ১. আগের সব ট্রান্সলেশন ক্লিন করা
+      // ১. আগের ট্রান্সলেশন ক্লিন করা
       await tx.metaTranslation.deleteMany({
-        where: { metaId: id } // স্কিমা অনুযায়ী এখানে metaId হবে
+        where: { metaId: id }
       });
 
-      const slugBn = slugify(translations.bn.title, { lower: true, strict: true }) || `ball-bn-${Date.now()}`;
-      const slugEn = slugify(translations.en.title, { lower: true, strict: true }) || `ball-en-${Date.now()}`;
+      const slugValue = slugify(title, { lower: true, strict: true }) || `ball-${Date.now()}`;
 
-      // ২. মেইন মেটা ডাটা এবং নতুন ট্রান্সলেশন আপডেট করা
+      // ২. ল্যাঙ্গুয়েজ ডিপেন্ডেন্সি অনুযায়ী Json কনটেন্ট অবজেক্ট বিল্ড করা
+      const bnContentObj = currentLang === "BN" ? { description: description } : {};
+      const enContentObj = currentLang === "EN" ? { description: description } : {};
+
+      // ৩. মেইন টেবিল আপডেট করা
       return await tx.tournamentMeta.update({
         where: { id },
         data: {
-          year: Number(year),
-          displayOrder: Number(displayOrder),
-          image,
-          bgGradient,
-          // ❌ specifications এখান থেকেও বাদ দেওয়া হয়েছে
+          year: Number(year) || 2026,
+          image: finalImageUrl,
+          ...(seasonId && { seasonId }),
           translations: {
             create: [
               {
                 language: "BN",
-                title: translations.bn.title,
-                subtitle: translations.bn.subtitle || "",
-                slug: `${slugBn}-bn-${year}-${Date.now()}`,
-                excerpt: translations.bn.excerpt || "",
-                content: translations.bn.content || "",
+                title: currentLang === "BN" ? title : `BN - ${title}`,
+                slug: `${slugValue}-bn-${year}-${Date.now()}`,
+                content: bnContentObj, // 🛠️ ফিক্সড: টাইপ সেফ অবজেক্ট
               },
               {
                 language: "EN",
-                title: translations.en.title,
-                subtitle: translations.en.subtitle || "",
-                slug: `${slugEn}-en-${year}-${Date.now()}`,
-                excerpt: translations.en.excerpt || "",
-                content: translations.en.content || "",
+                title: currentLang === "EN" ? title : `EN - ${title}`,
+                slug: `${slugValue}-en-${year}-${Date.now()}`,
+                content: enContentObj, // 🛠️ ফিক্সড: টাইপ সেফ অবজেক্ট
               }
             ]
           }
@@ -217,7 +259,7 @@ export async function PUT(request: Request) {
 }
 
 // ==========================================
-// 4. DELETE (DELETE) - ফিক্সড মেথড
+// 4. DELETE (DELETE)
 // ==========================================
 export async function DELETE(request: Request) {
   try {
@@ -228,13 +270,10 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ success: false, error: "Ball ID is required for deletion" }, { status: 400 });
     }
 
-    // ট্রানজেকশন দিয়ে ডিপেন্ডেন্ট ডাটা সহ ক্লিন ডিলিট
     await prisma.$transaction(async (tx) => {
-      // প্রথমে চাইল্ড টেবিলের (Translations) ডাটা ডিলিট করতে হবে
       await tx.metaTranslation.deleteMany({
         where: { metaId: id }
       });
-      // তারপর প্যারেন্ট টেবিলের (TournamentMeta) ডাটা ডিলিট
       await tx.tournamentMeta.delete({
         where: { id }
       });

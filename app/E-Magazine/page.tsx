@@ -192,14 +192,16 @@ export default function EMagazineRootPage() {
       });
       lenis.destroy();
       ScrollTrigger.getAll().forEach((t) => t.kill());
+
+      
     };
   }, []);
 
   return (
-    <div className="relative w-full h-screen bg-[#030503]">
+    <div className="relative w-full bg-[#030503]">
       
       {/* 🌟 টপ ফিক্সড প্রোগ্রেসবার */}
-      <div className="fixed top-0 left-0 w-full h-[5px] bg-zinc-900/50 z-[1000] backdrop-blur-sm">
+      <div className="fixed bottom-10 left-0 w-full h-[5px] bg-zinc-900/50 z-[1000] backdrop-blur-sm">
         <div 
           className="h-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-400 transition-all duration-75 ease-out rounded-r"
           style={{ width: `${scrollProgress}%` }}
@@ -222,7 +224,7 @@ export default function EMagazineRootPage() {
       {/* কন্টেইনার */}
       <div
         ref={containerRef}
-        className="relative w-full h-screen bg-[#030503] text-white flex justify-center items-center overflow-hidden px-4 md:px-8 font-mono"
+        className="relative w-full min-h-screen bg-[#1b1e1b] text-white flex justify-center items-center overflow-hidden px-4 md:px-8 font-mono"
         style={{ perspective: "1000px" }}
       >
         <div className="absolute text-[10vw] font-black tracking-[0.2em] text-emerald-500/[0.03]">

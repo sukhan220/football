@@ -180,6 +180,30 @@ html, body {
 }
 
 
+/* Lenis smooth scroll এর জন্য স্ট্যান্ডার্ড CSS রিসেট */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis-smooth [data-lenis-prevent] {
+  scroll-behavior: contain;
+}
+
+/* আপনার মেইন কন্টেইনার যেন ভিউপোর্টের বাইরে গিয়ে লেআউট নষ্ট না করে */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden; /* হরিজন্টাল স্ক্রলবার বা ডানে-বামে ভেঙে যাওয়া আটকাবে */
+
+   -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 /*
