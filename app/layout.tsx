@@ -62,6 +62,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Football News",
   description: "Latest football news and updates",
+  icons: {
+    icon: '/icon.svg', // public ফোল্ডারের ফাইল পাথ
+  },
 };
 
 export default async function RootLayout({

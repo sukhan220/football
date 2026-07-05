@@ -19,6 +19,12 @@ const nextConfig: NextConfig = {
         hostname: 'res.cloudinary.com',
         pathname: '/**', // Cloudinary-র যেকোনো পাথের ইমেজ অ্যালাউ করার জন্য
       },
+      {
+        protocol: 'https',
+        hostname: 'crests.football-data.org',
+        port: '',
+        pathname: '/**',
+      },
 
       {
         protocol: "https",
