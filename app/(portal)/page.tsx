@@ -1,16 +1,12 @@
 
 
-
-
-// // // // app/page.tsx
-
 // // app/page.tsx
 // import { prisma } from "@/lib/prisma";
 // import Image from "next/image";
 // import Link from "next/link";
 // import { Calendar, ArrowUpRight, Clock, Layers } from "lucide-react";
 
-// // ডাটাবেজ রাউন্ড টেক্সকে প্রফেশনাল বাংলায় রূপান্তর করার হেল্পার ফাংশন
+// // ডাটাবেজ রাউন্ড টেক্সটকে প্রফেশনাল বাংলায় রূপান্তর করার হেল্পার ফাংশন
 // function formatBanglaRound(roundText: string | null | undefined): string {
 //   if (!roundText) return "";
   
@@ -37,19 +33,14 @@
 //   return converted.replace(/[0-9]/g, (digit) => banglaDigits[digit] || digit);
 // }
 
-// // 🛠️ Editor.js JSON থেকে প্রথম প্যারাগ্রাফের টেক্সট বের করার হেল্পার ফাংশন
+// // Editor.js JSON থেকে প্রথম প্যারাগ্রাফের টেক্সট বের করার হেল্পার ফাংশন
 // function getFirstParagraph(contentJson: any): string {
 //   try {
 //     if (!contentJson) return "";
-    
-//     // যদি স্ট্রিং আকারে আসে তবে পার্স করে নেওয়া
 //     const content = typeof contentJson === "string" ? JSON.parse(contentJson) : contentJson;
-    
 //     if (content && Array.isArray(content.blocks)) {
-//       // প্রথম paragraph টাইপের ব্লকটি খুঁজে বের করা
 //       const firstParagraphBlock = content.blocks.find((block: any) => block.type === "paragraph");
 //       if (firstParagraphBlock && firstParagraphBlock.data && firstParagraphBlock.data.text) {
-//         // এইচটিএমএল ট্যাগ থাকলে তা রিমুভ করে ক্লিন টেক্সট রিটার্ন করা
 //         return firstParagraphBlock.data.text.replace(/<\/?[^>]+(>|$)/g, "");
 //       }
 //     }
@@ -60,20 +51,25 @@
 // }
 
 // export default async function Home() {
-//   // ১. গতকাল, আজকে এবং আগামীকালকের ম্যাচের ফিক্সচার ডাটাবেজ থেকে নিয়ে আসা
-//   const yesterdayStart = new Date();
-//   yesterdayStart.setDate(yesterdayStart.getDate() - 1);
-//   yesterdayStart.setHours(0, 0, 0, 0);
+//   // 🕒 ১. ব্যবহারকারীর লোকাল টাইম এবং গত ১ সপ্তাহের রেঞ্জ ক্যালকুলেশন (গত ৪ দিন, আজ, আগামীকাল, পরশু)
+//   const now = new Date();
+  
+//   // গত ৪ দিন আগের শুরুর সময় (00:00:00.000)
+//   const pastFourDaysStart = new Date(now);
+//   pastFourDaysStart.setDate(now.getDate() - 4);
+//   pastFourDaysStart.setHours(0, 0, 0, 0);
 
-//   const tomorrowEnd = new Date();
-//   tomorrowEnd.setDate(tomorrowEnd.getDate() + 1);
-//   tomorrowEnd.setHours(23, 59, 59, 999);
+//   // পরশুর শেষ সময় (23:59:59.999)
+//   const dayAfterTomorrowEnd = new Date(now);
+//   dayAfterTomorrowEnd.setDate(now.getDate() + 2);
+//   dayAfterTomorrowEnd.setHours(23, 59, 59, 999);
 
+//   // ডাটাবেজ থেকে ম্যাচ ফিক্সচার ফেচ
 //   const fixturesData = await prisma.match.findMany({
 //     where: {
 //       matchDate: {
-//         gte: yesterdayStart,
-//         lte: tomorrowEnd,
+//         gte: pastFourDaysStart,
+//         lte: dayAfterTomorrowEnd,
 //       },
 //     },
 //     orderBy: {
@@ -85,7 +81,7 @@
 //     },
 //   });
 
-//   // ২. মেইন Article টেবিল থেকে ডেটা ফেচ এবং translations include (content ফিল্ডসহ)
+//   // ২. মেইন Article টেবিল থেকে ডেটা ফেচ
 //   const articlesData = await prisma.article.findMany({
 //     where: {
 //       status: "PUBLISHED",
@@ -96,7 +92,7 @@
 //     include: {
 //       translations: {
 //         where: {
-//           language: "BN", // বাংলা ফিল্টার
+//           language: "BN",
 //         },
 //       },
 //     },
@@ -107,8 +103,6 @@
 //     .filter((art) => art.translations.length > 0)
 //     .map((art) => {
 //       const translation = art.translations[0];
-      
-//       // ডাটাবেজের excerpt ফাঁকা থাকলে JSON content থেকে প্রথম লাইন জেনারেট করবে
 //       const generatedExcerpt = translation.excerpt 
 //         ? translation.excerpt 
 //         : getFirstParagraph(translation.content);
@@ -119,44 +113,59 @@
 //         createdAt: art.createdAt,
 //         title: translation.title,
 //         slug: translation.slug,
-//         excerpt: generatedExcerpt, // এখানে ডাইনামিক টেক্সট সেট হচ্ছে
+//         excerpt: generatedExcerpt,
 //         language: translation.language,
 //       };
 //     });
 
-//   // নিউজ ডিস্ট্রিবিউশন লজিক
+//   // নিউজ ডিস্ট্রিবিউশন
 //   const featuredArticle = articles[0];
 //   const gridArticles = articles.slice(1, 4);
-
-//   const relatedArticles = articles.length > 4 
-//     ? articles.slice(4, 7) 
-//     : articles.slice(1, 4); 
+//   const relatedArticles = articles.length > 4 ? articles.slice(4, 7) : articles.slice(1, 4);
 
 //   return (
-//     <div className="min-h-screen bg-[#070b08] text-gray-100 font-sans selection:bg-emerald-500 selection:text-black pt-16">
+//     <div className="min-h-screen bg-[#070b08] text-gray-100 selection:bg-emerald-500 selection:text-black pt-16">
+//       {/* প্রফেশনাল ফন্ট সিডিএন ইনজেকশন */}
+//       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Noto+Color+Emoji&display=swap" />
       
-//       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 transition-all space-y-12">
+//       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 transition-all space-y-12" style={{ fontFamily: "'Hind Siliguri', sans-serif" }}>
         
-//         {/* ⚽ উপরে: হরাইজন্টাল স্ক্রল ম্যাচ ফিক্সচার */}
+//         {/* ⚽ উপরে: ১ সপ্তাহের হরাইজন্টাল স্ক্রল ম্যাচ ফিক্সচার */}
 //         {fixturesData.length > 0 && (
 //           <div className="w-full overflow-x-auto no-scrollbar flex gap-4 pb-4 snap-x scroll-smooth">
 //             {fixturesData.map((match) => {
-//               const matchDateStr = new Date(match.matchDate).toDateString();
-//               const todayStr = new Date().toDateString();
+//               // লোকাল টাইমজোন ম্যাচিং লজিক
+//               const matchDate = new Date(match.matchDate);
+//               const matchDateStr = matchDate.toLocaleDateString('en-US');
+              
+//               const today = new Date();
+//               const todayStr = today.toLocaleDateString('en-US');
               
 //               const yesterday = new Date();
-//               yesterday.setDate(yesterday.getDate() - 1);
-//               const yesterdayStr = yesterday.toDateString();
+//               yesterday.setDate(today.getDate() - 1);
+//               const yesterdayStr = yesterday.toLocaleDateString('en-US');
 
-//               let dayLabel = "আগামীকাল";
+//               const tomorrow = new Date();
+//               tomorrow.setDate(today.getDate() + 1);
+//               const tomorrowStr = tomorrow.toLocaleDateString('en-US');
+
+//               const dayAfterTomorrow = new Date();
+//               dayAfterTomorrow.setDate(today.getDate() + 2);
+//               const dayAfterTomorrowStr = dayAfterTomorrow.toLocaleDateString('en-US');
+
+//               // ডাইনামিক ডে লেবেল কন্ডিশন
+//               let dayLabel = matchDate.toLocaleDateString('bn-BD', { weekday: 'long' });
 //               if (matchDateStr === todayStr) {
 //                 dayLabel = "আজ";
+//               } else if (matchDateStr === tomorrowStr) {
+//                 dayLabel = "আগামীকাল";
+//               } else if (matchDateStr === dayAfterTomorrowStr) {
+//                 dayLabel = "পরশু";
 //               } else if (matchDateStr === yesterdayStr) {
 //                 dayLabel = "গতকাল";
 //               }
 
 //               const currentStatus = match.status as string;
-
 //               const isLive = currentStatus === "LIVE" || currentStatus === "RUNNING" || currentStatus === "IN_PLAY";
 //               const isFinished = currentStatus === "FINISHED" || currentStatus === "FT";
 //               const shouldShowScore = isLive || isFinished;
@@ -178,7 +187,9 @@
 //                             ? 'bg-red-950/60 text-red-400 border border-red-900/30' 
 //                             : dayLabel === "গতকাল"
 //                             ? 'bg-zinc-800 text-zinc-300 border border-zinc-700'
-//                             : 'bg-emerald-950/60 text-emerald-400 border border-emerald-900/30'
+//                             : dayLabel === "আগামীকাল" || dayLabel === "পরশু"
+//                             ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-900/30'
+//                             : 'bg-zinc-900 text-gray-400 border border-zinc-800'
 //                         }`}>
 //                           {dayLabel}
 //                         </span>
@@ -191,10 +202,11 @@
 //                       )}
 //                     </div>
 
+//                     {/* ব্যবহারকারীর বর্তমান দেশের নিজস্ব লোকাল সময় প্রদর্শন করবে */}
 //                     <div className="flex items-center gap-1 text-[11px] font-semibold text-gray-400 shrink-0">
 //                       <Clock className="w-3 h-3 text-emerald-500" />
 //                       <span>
-//                         {new Date(match.matchDate).toLocaleTimeString('bn-BD', {
+//                         {matchDate.toLocaleTimeString([], {
 //                           hour: '2-digit', minute: '2-digit', hour12: true
 //                         })}
 //                       </span>
@@ -271,12 +283,11 @@
 //                         </span>
 //                       </div>
 
-//                       <h2 className="text-xl lg:text-2xl font-extrabold text-white group-hover:text-emerald-400 transition-colors duration-300 leading-snug">
+//                       <h2 className="text-xl lg:text-2xl font-extrabold text-white group-hover:text-emerald-400 transition-colors duration-300 leading-snug text-left">
 //                         {featuredArticle.title}
 //                       </h2>
 
-//                       {/* ✍️ JSON কন্টেন্ট থেকে ডাইনামিক প্রথম লাইন এখানে বসবে */}
-//                       <p className="text-gray-400 text-xs leading-relaxed line-clamp-3 font-medium">
+//                       <p className="text-gray-400 text-xs leading-relaxed line-clamp-3 font-medium text-justify">
 //                         {featuredArticle.excerpt || "খবরের বিস্তারিত অংশ জানতে নিচে ক্লিক করুন।"}
 //                       </p>
 
@@ -313,12 +324,11 @@
 //                             })}
 //                           </div>
 
-//                           <h3 className="text-base font-bold text-gray-100 group-hover:text-emerald-400 transition-colors duration-200 line-clamp-2 leading-snug">
+//                           <h3 className="text-base font-bold text-gray-100 group-hover:text-emerald-400 transition-colors duration-200 line-clamp-2 leading-snug text-left">
 //                             {article.title}
 //                           </h3>
 
-//                           {/* ✍️ গ্রিড নিউজের ডাইনামিক প্রথম লাইন */}
-//                           <p className="text-gray-400 text-[11px] leading-relaxed line-clamp-2 font-medium">
+//                           <p className="text-gray-400 text-[11px] leading-relaxed line-clamp-2 font-medium text-justify">
 //                             {article.excerpt || "খবরের বিস্তারিত অংশ জানতে ক্লিক করুন..."}
 //                           </p>
 //                         </div>
@@ -355,10 +365,10 @@
 //                           />
 //                         </div>
 //                         <div className="min-w-0 space-y-1">
-//                           <h4 className="text-sm font-bold text-gray-200 group-hover:text-emerald-400 transition-colors duration-200 line-clamp-2 leading-snug">
+//                           <h4 className="text-sm font-bold text-gray-200 group-hover:text-emerald-400 transition-colors duration-200 line-clamp-2 leading-snug text-left">
 //                             {article.title}
 //                           </h4>
-//                           <span className="block text-[10px] text-gray-500">
+//                           <span className="block text-[10px] text-gray-500 text-left">
 //                             {new Date(article.createdAt).toLocaleDateString('bn-BD', {
 //                               day: 'numeric', month: 'short'
 //                             })}
@@ -432,18 +442,18 @@ export default async function Home() {
   // 🕒 ১. ব্যবহারকারীর লোকাল টাইম এবং গত ১ সপ্তাহের রেঞ্জ ক্যালকুলেশন (গত ৪ দিন, আজ, আগামীকাল, পরশু)
   const now = new Date();
   
-  // গত ৪ দিন আগের শুরুর সময় (00:00:00.000)
+  // গত ৪ দিন আগের শুরুর সময় (00:00:00.000)
   const pastFourDaysStart = new Date(now);
   pastFourDaysStart.setDate(now.getDate() - 4);
   pastFourDaysStart.setHours(0, 0, 0, 0);
 
-  // পরশুর শেষ সময় (23:59:59.999)
+  // পরশুর শেষ সময় (23:59:59.999)
   const dayAfterTomorrowEnd = new Date(now);
   dayAfterTomorrowEnd.setDate(now.getDate() + 2);
   dayAfterTomorrowEnd.setHours(23, 59, 59, 999);
 
   // ডাটাবেজ থেকে ম্যাচ ফিক্সচার ফেচ
-  const fixturesData = await prisma.match.findMany({
+  const rawFixturesData = await prisma.match.findMany({
     where: {
       matchDate: {
         gte: pastFourDaysStart,
@@ -458,6 +468,32 @@ export default async function Home() {
       awayTeam: true,
     },
   });
+
+  // 🎯 ম্যাচগুলোকে রানিং/আজকের ভিত্তিতে সাজানোর লজিক (যাতে স্ক্রল ছাড়াই এটি প্রথমে দেখায়)
+  const sortedFixtures: typeof rawFixturesData = [];
+  const pastFixtures: typeof rawFixturesData = [];
+
+  rawFixturesData.forEach((match) => {
+    const currentStatus = match.status as string;
+    const isLive = currentStatus === "LIVE" || currentStatus === "RUNNING" || currentStatus === "IN_PLAY";
+    
+    const matchDateStr = new Date(match.matchDate).toLocaleDateString('en-US');
+    const todayStr = now.toLocaleDateString('en-US');
+    const isToday = matchDateStr === todayStr;
+
+    // লাইভ বা আজকের ম্যাচ হলে অ্যারের শুরুতে যাবে, আগের ম্যাচ হলে শেষে যাবে
+    if (isLive || isToday) {
+      sortedFixtures.unshift(match); // সবার আগে পুশ হবে
+    } else if (new Date(match.matchDate) < now) {
+      pastFixtures.push(match); // পুরনো ম্যাচগুলো আলাদা জমা হচ্ছে
+    } else {
+      sortedFixtures.push(match); // ভবিষ্যতের ম্যাচগুলো ক্রমানুসারে বসবে
+    }
+  });
+
+  // পুরনো ম্যাচগুলোকে একদম বামে পাঠিয়ে নতুন সাজানো অ্যারে তৈরি
+  const fixturesData = [...pastFixtures, ...sortedFixtures];
+
 
   // ২. মেইন Article টেবিল থেকে ডেটা ফেচ
   const articlesData = await prisma.article.findMany({
@@ -476,7 +512,7 @@ export default async function Home() {
     },
   });
 
-  // ৩. ডেটাকে ফ্ল্যাট স্ট্রাকচারে রূপান্তর এবং ডাইনামিক excerpt তৈরি
+  // ৩. ডোকে ফ্ল্যাট স্ট্রাকচারে রূপান্তর এবং ডাইনামিক excerpt তৈরি
   const articles = articlesData
     .filter((art) => art.translations.length > 0)
     .map((art) => {
@@ -512,7 +548,6 @@ export default async function Home() {
         {fixturesData.length > 0 && (
           <div className="w-full overflow-x-auto no-scrollbar flex gap-4 pb-4 snap-x scroll-smooth">
             {fixturesData.map((match) => {
-              // লোকাল টাইমজোন ম্যাচিং লজিক
               const matchDate = new Date(match.matchDate);
               const matchDateStr = matchDate.toLocaleDateString('en-US');
               
@@ -580,11 +615,12 @@ export default async function Home() {
                       )}
                     </div>
 
-                    {/* ব্যবহারকারীর বর্তমান দেশের নিজস্ব লোকাল সময় প্রদর্শন করবে */}
+                    {/* 🇧🇩 এশিয়া/ঢাকা (বাংলাদেশি সময়) অনুযায়ী ফরম্যাট করা */}
                     <div className="flex items-center gap-1 text-[11px] font-semibold text-gray-400 shrink-0">
                       <Clock className="w-3 h-3 text-emerald-500" />
                       <span>
-                        {matchDate.toLocaleTimeString([], {
+                        {matchDate.toLocaleTimeString('bn-BD', {
+                          timeZone: "Asia/Dhaka",
                           hour: '2-digit', minute: '2-digit', hour12: true
                         })}
                       </span>
