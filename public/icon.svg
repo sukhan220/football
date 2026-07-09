@@ -1,22 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
-  <!-- ডার্ক ব্যাকগ্রাউন্ড -->
-  <rect width="512" height="512" rx="128" fill="#070b08"/>
+  <rect width="512" height="512" rx="128" fill="#1fae96" />
   
-  <!-- খেলার মাঠের বর্ডার (আপনার Logo2.1.png এর মতো করে তৈরি) -->
-  <path d="M 64,360 L 64,128 C 64,96 96,64 128,64 L 210,64 M 302,64 L 384,64 C 416,64 448,96 448,128 L 448,360" 
-        fill="none" 
-        stroke="#10b981" 
-        stroke-width="28" 
-        stroke-linecap="round"/>
-        
-  <!-- মাঝখানের আকর্ষণীয় "D" লেটার -->
-  <text x="256" y="90" 
-        font-family="system-ui, -apple-system, sans-serif" 
-        font-size="76" 
-        font-weight="900" 
-        fill="#ffffff" 
-        text-anchor="middle">D</text>
-        
-  <!-- মাঠের পেনাল্টি স্পট বা সেন্টার ডট (লুক সুন্দর করার জন্য) -->
-  <circle cx="256" cy="256" r="20" fill="#10b981"/>
+  <g fill="none" stroke="#ffffff" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 120,290 L 120,160 L 410,160 L 410,240" />
+    <path d="M 120,200 L 140,200 C 180,200 180,270 140,270 L 120,270" />
+    <path d="M 120,320 L 210,320" />
+  </g>
 </svg>
