@@ -885,7 +885,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { ChevronRight, X, Calendar, Trophy, MapPin, Smile, Disc } from "lucide-react";
+import { ChevronRight, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Fixture {
@@ -938,10 +938,7 @@ export default function FixturesPage() {
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // আপনার স্ক্রিনশটের মেইন ট্যাব ডিজাইন (Fixture, Ball, Mascot, Champion, Stadium)
-  const [activeMenu, setActiveMenu] = useState<"fixture" | "ball" | "mascot" | "champion" | "stadium">("fixture");
-  
-  // ফিক্সচার ট্যাবের ভেতরের সাব-ট্যাব (খেলা, ব্র্যাকেট, অবস্থান)
+  // পেজের নিজস্ব ইন্টারনাল সাব-ট্যাব (খেলা, ব্র্যাকেট, অবস্থান)
   const [fixtureTab, setFixtureTab] = useState<"matches" | "bracket" | "standings">("bracket");
   const [activeBracketStage, setActiveBracketStage] = useState("ROUND_OF_32"); 
   const [isAllMatchesOpen, setIsAllMatchesOpen] = useState(false);
@@ -969,7 +966,7 @@ export default function FixturesPage() {
     fetchData();
   }, []);
 
-  // ব্র্যাকেট স্ক্রোল ট্র্যাকিং
+  // ব্র্যাকেট স্ক্রোল ট্র্যাকিং (যা ডিসপ্লেতে থাকবে সেটাই একটিভ দেখাবে)
   const handleScroll = () => {
     if (!scrollContainerRef.current) return;
     const containerLeft = scrollContainerRef.current.getBoundingClientRect().left;
@@ -1128,14 +1125,14 @@ export default function FixturesPage() {
     return (
       <div 
         key={match.id} 
-        className={`bg-[#181818] border rounded-2xl flex flex-col justify-between p-4 transition-all duration-200 ${
-          compact ? "text-xs w-[290px] md:w-[330px] shrink-0 border-[#282828]" : "border-[#282828]"
-        } hover:bg-[#222222]`}
+        className={`bg-[#161617] border rounded-2xl flex flex-col justify-between p-4 transition-all duration-200 ${
+          compact ? "text-xs w-[290px] md:w-[330px] shrink-0 border-[#28282a]" : "border-[#28282a]"
+        } hover:bg-[#222224]`}
       >
-        <div className="text-[11px] text-gray-400 mb-3 font-medium tracking-wide">{day} · {time}</div>
-        <div className="space-y-3.5">
+        <div className="text-[11px] text-gray-400 mb-2.5 font-medium tracking-wide">{day} · {time}</div>
+        <div className="space-y-3">
           <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2.5 truncate">
+            <div className="flex items-center gap-2 truncate">
               {match.homeTeamLogo ? (
                 <img src={match.homeTeamLogo} alt="" className="w-4 h-4 object-contain" />
               ) : (
@@ -1146,7 +1143,7 @@ export default function FixturesPage() {
             <span className="font-mono font-bold text-gray-200 text-sm">{match.homeScore !== null ? match.homeScore : "-"}</span>
           </div>
           <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2.5 truncate">
+            <div className="flex items-center gap-2 truncate">
               {match.awayTeamLogo ? (
                 <img src={match.awayTeamLogo} alt="" className="w-4 h-4 object-contain" />
               ) : (
@@ -1162,67 +1159,21 @@ export default function FixturesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0b] text-[#e8eaed] pb-12 font-sans antialiased selection:bg-emerald-500/30">
+    <div className="w-full bg-[#0a0a0b] text-[#e8eaed] py-20  font-sans antialiased">
       
-      {/* 📌 মূল স্টিকি কন্টেইনার (নেভিগেশন হেডার যা স্ক্রোল করলেও স্থির থাকবে) */}
-      <div className="bg-[#111112] border-b border-[#222224] sticky top-0 z-50 shadow-lg">
+      {/* 📌 স্টিকি কন্টেইনার: সাব-মেনুবার এবং রাউন্ড সিলেকশন একসাথে লক থাকবে */}
+      <div className="bg-[#0a0a0b] sticky top-0 z-40 shadow-md">
         
-        {/* 1️⃣ স্ক্রিনশট অনুযায়ী মেইন ক্যাপসুল মেনু বার */}
-        <div className="max-w-7xl mx-auto px-4 py-3 flex gap-2 overflow-x-auto scrollbar-none whitespace-nowrap">
-          <button 
-            onClick={() => setActiveMenu("fixture")}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
-              activeMenu === "fixture" ? "bg-[#00e676] text-black" : "bg-[#1c1c1e] text-gray-400 border border-[#28282a]"
-            }`}
-          >
-            <Calendar className="w-3.5 h-3.5" /> Fixture
-          </button>
-          <button 
-            onClick={() => setActiveMenu("ball")}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
-              activeMenu === "ball" ? "bg-[#00e676] text-black" : "bg-[#1c1c1e] text-gray-400 border border-[#28282a]"
-            }`}
-          >
-            <Disc className="w-3.5 h-3.5" /> Ball
-          </button>
-          <button 
-            onClick={() => setActiveMenu("mascot")}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
-              activeMenu === "mascot" ? "bg-[#00e676] text-black" : "bg-[#1c1c1e] text-gray-400 border border-[#28282a]"
-            }`}
-          >
-            <Smile className="w-3.5 h-3.5" /> Mascot
-          </button>
-          <button 
-            onClick={() => setActiveMenu("champion")}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
-              activeMenu === "champion" ? "bg-[#00e676] text-black" : "bg-[#1c1c1e] text-gray-400 border border-[#28282a]"
-            }`}
-          >
-            <Trophy className="w-3.5 h-3.5" /> Champion
-          </button>
-          <button 
-            onClick={() => setActiveMenu("stadium")}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
-              activeMenu === "stadium" ? "bg-[#00e676] text-black" : "bg-[#1c1c1e] text-gray-400 border border-[#28282a]"
-            }`}
-          >
-            <MapPin className="w-3.5 h-3.5" /> Stadium
-          </button>
+        {/* সাব-ট্যাব মেনু (খেলা, ব্র্যাকেট, অবস্থান) */}
+        <div className="px-4 flex gap-5 text-xs font-medium border-b border-[#1e1e20] bg-[#111112]">
+          <button onClick={() => setFixtureTab("matches")} className={`pb-3 pt-3 border-b-2 transition-all ${fixtureTab === "matches" ? "border-[#00e676] text-[#00e676]" : "border-transparent text-gray-400 hover:text-white"}`}>খেলা</button>
+          <button onClick={() => setFixtureTab("bracket")} className={`pb-3 pt-3 border-b-2 transition-all ${fixtureTab === "bracket" ? "border-[#00e676] text-[#00e676]" : "border-transparent text-gray-400 hover:text-white"}`}>ব্র্যাকেট</button>
+          <button onClick={() => setFixtureTab("standings")} className={`pb-3 pt-3 border-b-2 transition-all ${fixtureTab === "standings" ? "border-[#00e676] text-[#00e676]" : "border-transparent text-gray-400 hover:text-white"}`}>অবস্থান</button>
         </div>
 
-        {/* 2️⃣ ফিক্সচারের সাব-মেনুবার (খেলা, ব্র্যাকেট, অবস্থান) */}
-        {activeMenu === "fixture" && (
-          <div className="max-w-7xl mx-auto px-4 flex gap-5 text-xs font-medium border-t border-[#1e1e20]">
-            <button onClick={() => setFixtureTab("matches")} className={`pb-3 pt-3 border-b-2 transition-all ${fixtureTab === "matches" ? "border-[#00e676] text-[#00e676]" : "border-transparent text-gray-400 hover:text-white"}`}>খেলা</button>
-            <button onClick={() => setFixtureTab("bracket")} className={`pb-3 pt-3 border-b-2 transition-all ${fixtureTab === "bracket" ? "border-[#00e676] text-[#00e676]" : "border-transparent text-gray-400 hover:text-white"}`}>ব্র্যাকেট</button>
-            <button onClick={() => setFixtureTab("standings")} className={`pb-3 pt-3 border-b-2 transition-all ${fixtureTab === "standings" ? "border-[#00e676] text-[#00e676]" : "border-transparent text-gray-400 hover:text-white"}`}>অবস্থান</button>
-          </div>
-        )}
-
-        {/* 3️⃣ স্ক্রিনশটের মতো রাউন্ড সাব-মেনু (শুধুমাত্র ব্র্যাকেট মোডে এটি স্টিকি টপের সাথে লক থাকবে) */}
-        {activeMenu === "fixture" && fixtureTab === "bracket" && !loading && (
-          <div className="bg-[#141416] border-t border-b border-[#222224] px-4 py-2.5 flex gap-2 overflow-x-auto scrollbar-none whitespace-nowrap">
+        {/* রাউন্ড মেনু (শুধুমাত্র ব্র্যাকেট মোডে টপ সাব-মেনুর নিচে স্টিকি থাকবে) */}
+        {fixtureTab === "bracket" && !loading && (
+          <div className="bg-[#141416] border-b border-[#222224] px-4 py-2.5 flex gap-2 overflow-x-auto scrollbar-none whitespace-nowrap">
             {bracketStagesOrder.map((stageKey) => (
               <button
                 key={stageKey}
@@ -1240,15 +1191,16 @@ export default function FixturesPage() {
         )}
       </div>
 
-      {/* 📌 মেইন বডি কন্টেন্ট কন্টেইনার */}
+      {/* 📌 মূল বডি কন্টেন্ট */}
       <div className="max-w-7xl mx-auto px-4 mt-4">
         {loading ? (
-          <div className="h-44 bg-[#111112] border border-[#222224] rounded-2xl animate-pulse mt-2" />
+          <div className="h-44 bg-[#111112] border border-[#222224] rounded-2xl animate-pulse" />
         ) : (
           <AnimatePresence mode="wait">
             
-            {activeMenu === "fixture" && fixtureTab === "bracket" && (
-              <motion.div key="bracket" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="pt-1">
+            {/* 🗺️ ব্র্যাকেট ভিউ */}
+            {fixtureTab === "bracket" && (
+              <motion.div key="bracket" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                 <div 
                   ref={scrollContainerRef}
                   onScroll={handleScroll}
@@ -1260,7 +1212,6 @@ export default function FixturesPage() {
                       ref={(el) => { stageRefs.current[stage.stageKey] = el; }}
                       className="flex flex-col gap-4 min-w-[290px] md:min-w-[330px] snap-start"
                     >
-                      {/* বর্তমানে যে স্টেজটি ডিসপ্লেতে এক্টিভ থাকবে সেটি হাইলাইটেড হবে */}
                       <div className={`text-xs font-bold px-1 tracking-wider uppercase transition-colors ${
                         activeBracketStage === stage.stageKey ? "text-[#00e676]" : "text-gray-400"
                       }`}>
@@ -1282,8 +1233,8 @@ export default function FixturesPage() {
               </motion.div>
             )}
 
-            {/* 📊 অবস্থান (মোবাইল ফ্রেন্ডলি গ্রুপ টেবিল) */}
-            {activeMenu === "fixture" && fixtureTab === "standings" && (
+            {/* 📊 অবস্থান ভিউ */}
+            {fixtureTab === "standings" && (
               <motion.div key="standings" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
                 {Object.keys(groupStandings).length === 0 ? (
                   <div className="text-center py-12 bg-[#111112] rounded-2xl border border-[#222224] text-gray-500 text-xs">
@@ -1330,8 +1281,8 @@ export default function FixturesPage() {
               </motion.div>
             )}
 
-            {/* 🕒 খেলা (আজ ও আগামীকালের ম্যাচ শিডিউল) */}
-            {activeMenu === "fixture" && fixtureTab === "matches" && (
+            {/* 🕒 খেলা ভিউ */}
+            {fixtureTab === "matches" && (
               <motion.div key="matches" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
                 <div className="text-xs font-medium text-white pb-2 border-b border-[#222224]">
                   আজ ও আগামীকালের ম্যাচ
@@ -1354,21 +1305,14 @@ export default function FixturesPage() {
               </motion.div>
             )}
 
-            {/* বাকি ফিচারের জন্য প্লেসহোল্ডার স্ক্রিন */}
-            {activeMenu !== "fixture" && (
-              <motion.div key={activeMenu} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 text-gray-500 text-xs bg-[#111112] border border-[#222224] rounded-2xl">
-                {activeMenu.toUpperCase()} পেজ ডাটা শীঘ্রই আপডেট করা হবে।
-              </motion.div>
-            )}
-
           </AnimatePresence>
         )}
       </div>
 
-      {/* 📌 সমস্ত ম্যাচের ওভারলে মডাল */}
+      {/* সমস্ত ম্যাচের মডাল */}
       {isAllMatchesOpen && (
         <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex justify-center items-end md:items-center">
-          <div className="bg-[#0a0a0b] w-full max-w-2xl h-[82vh] rounded-t-2xl md:rounded-2xl border border-[#222224] flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-200">
+          <div className="bg-[#0a0a0b] w-full max-w-2xl h-[82vh] rounded-t-2xl md:rounded-2xl border border-[#222224] flex flex-col overflow-hidden">
             <div className="bg-[#111112] px-4 py-3.5 border-b border-[#222224] flex items-center justify-between">
               <span className="text-xs text-white font-medium">সমস্ত ম্যাচের সময়সূচী</span>
               <button onClick={() => setIsAllMatchesOpen(false)} className="text-gray-400 hover:text-white"><X className="w-4 h-4" /></button>
