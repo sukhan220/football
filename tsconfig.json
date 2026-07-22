@@ -19,8 +19,11 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@football/engine": ["./packages/engine/src/index.ts"],
+      "@football/engine/*": ["./packages/engine/src/*"]
     }
+    
   },
   "include": [
     "next-env.d.ts",

@@ -1,0 +1,7 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "@football/engine": ["./packages/engine/src/index.ts"]
+    }
+  }
+}
